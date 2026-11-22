@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0e14"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-title" content="Craps Play">
+<title>Craps Play-Along</title>
+<style>
+:root{--bg:#0a0e14;--p1:#131a22;--p2:#1a232e;--p3:#222c38;--line:#2a3544;--line2:#3a4656;--text:#e8eef6;--mut:#8b9bb0;--gold:#e0b15a;--cream:#f3e2c0;--good:#3dbe7a;--bad:#e05b5b;--seven:#b8392e;
+--hot1:#5a3a12;--hot1f:#ffc27a;--hot2:#8a3c0c;--hot2f:#ffd9b0;--hot3:#b02010;--hot3f:#fff;--cold1:#16384f;--cold1f:#a6d4f2;--cold2:#0f4a80;--cold2f:#d4ebff;--cold3:#1a5fd0;--cold3f:#fff;--neu:#1c2430;--neuf:#c5d0dc;
+--ui:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace;--safe-b:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.3 var(--ui);-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{appearance:none;border:1px solid var(--line2);background:var(--p3);border-radius:10px;min-height:48px;padding:0 10px;cursor:pointer;touch-action:manipulation}
+button:active{transform:scale(.97)}
+button[aria-pressed=true],button.on{border-color:var(--gold);background:#3a2f17;color:var(--cream)}
+button:disabled{opacity:.4}
+[hidden]{display:none!important}
+.app{display:flex;flex-direction:column;gap:6px;padding:6px 8px calc(6px + var(--safe-b));min-height:100dvh;max-width:1500px;margin:0 auto;align-content:start}
+.app>*{min-width:0}
+.top{display:flex;align-items:center;gap:8px}
+.stat{display:flex;flex-direction:column;background:var(--p1);border:1px solid var(--line);border-radius:10px;padding:4px 10px;min-width:0}
+.stat small{color:var(--mut);font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.stat b{font:700 20px var(--mono);white-space:nowrap}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.puck{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:#111;color:#bbb;border:3px solid #555;flex:none}
+.puck.on{background:#f4f4f4;color:#111;border-color:#222;font-size:22px;box-shadow:0 0 0 2px var(--gold)}
+.grow{flex:1}
+.menu{width:56px;font-size:22px}
+.hc{display:flex;gap:6px;align-items:stretch}
+.hc-cells{flex:1;display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.hc-cell{border-radius:8px;text-align:center;padding:4px 0 3px;border:1px solid transparent;position:relative}
+.hc-cell b{display:block;font-size:19px;line-height:1.1}
+.hc-cell small{font:11px var(--mono);opacity:.85}
+.hc-cell.sugg{border-color:#7fd0ff;box-shadow:inset 0 0 0 1px #7fd0ff}
+.hc-cell.sugg::after{content:"❄";position:absolute;top:1px;right:3px;font-size:10px}
+.hc-cell.seven b{color:#ff8a80}
+.g-neu{background:var(--neu);color:var(--neuf)}.g-hot1{background:var(--hot1);color:var(--hot1f)}.g-hot2{background:var(--hot2);color:var(--hot2f)}.g-hot3{background:var(--hot3);color:var(--hot3f)}
+.g-cold1{background:var(--cold1);color:var(--cold1f)}.g-cold2{background:var(--cold2);color:var(--cold2f)}.g-cold3{background:var(--cold3);color:var(--cold3f)}
+.hc-win{min-width:64px;font:700 13px var(--mono);line-height:1.1}
+.table{display:flex;align-items:center;gap:6px;background:#0f2a1d;border:1px solid #1d4a33;border-radius:10px;padding:5px 8px;min-height:40px}
+.chips{flex:1;display:flex;flex-wrap:wrap;gap:4px}
+.chip{font:600 12.5px var(--mono);padding:3px 7px;border-radius:12px;background:#1b3b2a;border:1px solid #2f6448;white-space:nowrap}
+.chip.lay{background:#3a1d1d;border-color:#7a3a3a}
+.chip.off{opacity:.5;text-decoration:line-through dotted}
+.chip.none{background:none;border:0;color:var(--mut);font-family:var(--ui)}
+.tot{font:12px var(--mono);color:var(--mut);white-space:nowrap}
+.result{background:var(--p1);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:5px 9px;font:13.5px/1.3 var(--mono);height:50px;overflow:hidden}
+.result.win{border-left-color:var(--good)}.result.loss{border-left-color:var(--bad)}
+.result .note{display:block;color:var(--gold);font-size:12px}
+.strip{display:flex;align-items:center;gap:6px;overflow:hidden}
+.strip-lab{color:var(--mut);font-size:11px;text-transform:uppercase}
+.strip-rolls{display:flex;gap:4px;overflow:hidden;flex:1;min-width:0}
+.r{min-width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font:700 13px var(--mono);background:var(--p3);flex:none;padding:0 3px}
+.r.s7{background:var(--seven);color:#fff}.r.h{box-shadow:inset 0 0 0 2px var(--gold)}.r.pt{outline:2px solid #fff;outline-offset:-2px}.r.seed{opacity:.45}
+.r.first{transform:scale(1.12);border:1px solid #fff}
+.strat{display:flex;flex-direction:column;gap:6px;background:var(--p1);border:1px solid var(--line);border-radius:10px;padding:6px}
+.srow{display:flex;gap:5px;align-items:center;flex-wrap:nowrap}
+.slab{color:var(--mut);font-size:11px;text-transform:uppercase;min-width:42px}
+.av{flex:1;min-width:0;padding:0;font-weight:700;font-size:17px;position:relative}
+.av.sugg::after{content:"❄";position:absolute;top:1px;right:3px;font-size:10px;color:#7fd0ff}
+.tier{flex:1;text-align:center;font:700 16px var(--mono)}
+.tier small{display:block;font:11px var(--ui);color:var(--mut)}
+.sbtn{min-width:0;flex:1;padding:0 4px;font-weight:700;font-size:13.5px;white-space:nowrap}
+.tier{flex:1.2}
+.recent{display:none}
+.pad{display:flex;flex-direction:column;gap:6px;margin-top:auto}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.k{min-height:70px;font:800 26px var(--ui);border-radius:12px;background:#1f2a37}
+.k.sm{min-height:50px;font-size:19px;background:#18212b}
+.k.seven{grid-column:span 3;background:var(--seven);color:#fff;border-color:#e06a5e}
+.k.tog,.k.undo{font-size:14px;font-weight:700;letter-spacing:.05em}
+.k.undo{background:#2a2020}
+.dice{display:flex;flex-direction:column;gap:6px}
+.dice-lab{text-align:center;color:var(--gold);font-weight:700}
+.dice-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.dice-keys .k{font-size:40px}
+.dice-keys2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.tabs button{min-height:46px;font-weight:600;font-size:14px;background:var(--p2)}
+/* landscape tablet / desktop: keypad on the right for thumb use */
+@media (min-width:880px) and (min-height:600px) and (orientation:landscape),(min-width:1100px) and (min-height:600px){
+  .app{display:grid;grid-template-columns:minmax(0,1fr) 420px;grid-template-areas:"top pad" "hc pad" "table pad" "result pad" "strip pad" "strat pad" "recent pad";grid-template-rows:repeat(6,auto) minmax(0,1fr);column-gap:12px;height:100dvh;align-content:start}
+  .top{grid-area:top}.hc{grid-area:hc}.table{grid-area:table}.result{grid-area:result}.strip{grid-area:strip}.strat{grid-area:strat}
+  .pad{grid-area:pad;align-self:stretch;padding-bottom:4px;min-height:0;margin-top:0;justify-content:flex-end}
+  .keys{flex:1;grid-template-rows:.75fr 1fr 1fr 1fr;max-height:640px;margin-top:auto}
+  .k{min-height:84px;font-size:32px}.k.sm{min-height:62px;font-size:24px}
+  .hc-cell b{font-size:26px}.hc-cell{padding:8px 0}
+  .stat b{font-size:26px}.puck{width:68px;height:68px}
+  .result{font-size:16px;min-height:48px}.chip{font-size:14px}.r{min-width:34px;height:34px;font-size:15px}
+  .recent{grid-area:recent;display:block;overflow:hidden;background:var(--p1);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:13px var(--mono)}
+  .recent div{padding:4px 0;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .recent h3{margin:0 0 4px;font:600 11px var(--ui);color:var(--mut);text-transform:uppercase}
+  .sbtn{font-size:15px}
+  .tabs button{min-height:56px}.av,.sbtn{min-height:56px}
+}
+/* sheet */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10;display:flex;justify-content:flex-end}
+.sheet-in{background:var(--p1);width:min(720px,100%);height:100%;display:flex;flex-direction:column;border-left:1px solid var(--line)}
+.sheet-head{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.sheet-head h2{flex:1;font-size:18px;margin:0}
+.close{width:56px;font-size:20px}
+.sheet-body{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:12px;padding-bottom:calc(20px + var(--safe-b))}
+.card{background:var(--p2);border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.card h3{margin:0;font-size:14px;color:var(--cream);text-transform:uppercase;letter-spacing:.05em}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.row>button{flex:1;min-width:90px}
+.muted{color:var(--mut);font-size:12.5px}
+input[type=number],input[type=text],select,textarea{background:#0d131a;border:1px solid var(--line2);border-radius:8px;padding:10px;min-height:48px;width:100%}
+textarea{min-height:110px;font-family:var(--mono);font-size:13px}
+label.tg{display:flex;align-items:center;gap:10px;min-height:48px}
+label.tg input{width:26px;height:26px}
+.betrow{display:grid;grid-template-columns:1fr auto 56px 56px;gap:6px;align-items:center;padding:3px 0;border-bottom:1px solid var(--line)}
+.betrow .amt{font:600 14px var(--mono);text-align:right;min-width:90px}
+.betrow.dis{opacity:.45}
+.units{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+table.t{width:100%;border-collapse:collapse;font:13px var(--mono)}
+table.t td,table.t th{padding:5px 4px;border-bottom:1px solid var(--line);text-align:right}
+table.t td:first-child,table.t th:first-child{text-align:left}
+.hist{font:12.5px var(--mono)}
+.hist div{padding:6px 2px;border-bottom:1px solid var(--line)}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:5px}
+.hgrid .hc-cell{padding:6px 0}
+.toast{pointer-events:none;position:fixed;left:50%;top:44%;transform:translateX(-50%);background:#000;border:1px solid var(--gold);padding:10px 16px;border-radius:10px;z-index:20;max-width:90vw}
+.slab small{display:block;font-size:10px;text-transform:none;color:var(--gold)}
+.srow.press .sbtn{font-size:13px}
+.hc-win small{display:block;font-size:10px;color:var(--mut);font-weight:400}
+.presets>button{min-width:110px}
+table.amt input{min-height:44px;padding:6px 8px;text-align:right;font:600 15px var(--mono)}
+table.amt tr.avd td{background:#2a1c1c}
+.chip.miss{background:#4a1515;border-color:#e05b5b;color:#ffd0d0}
+.puck{padding:0;min-height:0}
+.table{min-height:64px}
+@media (min-width:880px) and (min-height:600px) and (orientation:landscape),(min-width:1100px) and (min-height:600px){.result{height:auto;min-height:48px;max-height:96px}.toast{top:auto;bottom:40px;left:calc((100% - 432px) / 2)}.table{min-height:48px}}
+/* storage meter + not-saved bar */
+.meter{height:12px;border-radius:6px;background:#1c2430;overflow:hidden;margin:6px 0}
+.meter i{display:block;height:100%;background:#3fb27f}
+.meter i.hi{background:#e5534b}
+.warn{background:#3a1d1d;color:#ffb4ab;border-radius:8px;padding:8px;margin:6px 0}
+.savebar{position:fixed;left:8px;right:8px;top:8px;z-index:60;display:flex;gap:8px;align-items:center;background:#7a1f1f;color:#fff;border-radius:10px;padding:8px 10px;box-shadow:0 4px 16px #0008}
+.savebar span{flex:1;font-weight:600}
+.savebar button{min-height:44px;padding:0 14px;border-radius:8px;border:0;background:#fff;color:#7a1f1f;font-weight:700}
+.savebar[hidden]{display:none}
+
+</style></head><body>
+<div class="app" id="app">
+  <header class="top">
+    <div class="stat"><small>Cash · off table</small><b id="bank">$0</b></div>
+    <div class="stat"><small>Session P/L</small><b id="pl">$0</b></div>
+    <button class="puck" id="puck" data-act="point" title="Set the point if one is already on" aria-label="Point">OFF</button>
+    <div class="grow"></div>
+    <button class="menu" data-sheet="session" aria-label="Session menu">☰</button>
+  </header>
+
+  <section class="hc" aria-label="Hot and cold">
+    <div class="hc-cells" id="hcCells"></div>
+    <button class="hc-win" id="hcWin" data-act="win">24</button>
+  </section>
+
+  <section class="table" aria-label="Bets on the layout">
+    <div class="chips" id="chips"></div>
+    <div class="tot" id="tot"></div>
+  </section>
+
+  <div class="result" id="result">Enter the first roll.</div>
+
+  <section class="strip" aria-label="Recent rolls"><span class="strip-lab">Last</span><div id="strip" class="strip-rolls"></div></section>
+
+  <section class="strat" id="strat"></section>
+
+  <section class="recent" id="recent" aria-label="Recent results"></section>
+
+  <section class="pad" aria-label="Roll entry">
+    <div class="keys" id="keys">
+      <button class="k sm" data-roll="2">2</button><button class="k sm" data-roll="3">3</button><button class="k sm" data-roll="11">11</button><button class="k sm" data-roll="12">12</button>
+      <button class="k" data-roll="4">4</button><button class="k" data-roll="5">5</button><button class="k" data-roll="6">6</button><button class="k tog" id="hardBtn" data-act="hard" aria-pressed="false">HARD</button>
+      <button class="k" data-roll="8">8</button><button class="k" data-roll="9">9</button><button class="k" data-roll="10">10</button><button class="k undo" data-act="undo">UNDO</button>
+      <button class="k seven" data-roll="7">7</button><button class="k tog" id="diceBtn" data-act="dice" aria-pressed="false">DICE</button>
+    </div>
+    <div class="dice" id="dice" hidden>
+      <div class="dice-lab" id="diceLab">Tap die 1</div>
+      <div class="dice-keys">
+        <button class="k" data-die="1">⚀</button><button class="k" data-die="2">⚁</button><button class="k" data-die="3">⚂</button>
+        <button class="k" data-die="4">⚃</button><button class="k" data-die="5">⚄</button><button class="k" data-die="6">⚅</button>
+      </div>
+      <div class="dice-keys2"><button class="k undo" data-act="undo">UNDO</button><button class="k tog" data-act="dice" aria-pressed="true">KEYPAD</button></div>
+    </div>
+    <nav class="tabs">
+      <button data-sheet="bets">Bets</button><button data-sheet="history">History</button><button data-sheet="heat">Heat</button><button data-sheet="stats">Stats</button><button data-sheet="settings">⚙</button>
+    </nav>
+  </section>
+</div>
+
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-in">
+    <div class="sheet-head"><h2 id="sheetTitle"></h2><button class="close" data-act="close" aria-label="Close">✕</button></div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+<div class="savebar" id="saveBar" role="alert" hidden><span>Not saved — browser storage full. Your rolls are safe in this tab.</span><button data-act="exall">Export</button><button data-sheet="settings">Storage</button></div>
+<div class="toast" id="toast" hidden></div>
+<input type="file" id="fileIn" accept=".json,.csv,.txt,application/json,text/csv,text/plain" hidden>
+
+<script id="engine">
+/* Craps Play — pure engine (no DOM). Node + browser. Standard (non-crapless) rules.
+   Every outcome comes from the entered roll; nothing is randomised here. */
+(function (root, factory) {
+  if (typeof module !== "undefined" && module.exports) module.exports = factory();
+  else root.CrapsPlay = factory();
+})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  "use strict";
+
+  var BOX = [4, 5, 6, 8, 9, 10];
+  var HARDS = [4, 6, 8, 10];
+  var WAYS = { 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 5, 9: 4, 10: 3, 11: 2, 12: 1 };
+  var PLACE_PAY = { 4: [9, 5], 5: [7, 5], 6: [7, 6], 8: [7, 6], 9: [7, 5], 10: [9, 5] };
+  var LAY_PAY = { 4: [1, 2], 5: [2, 3], 6: [5, 6], 8: [5, 6], 9: [2, 3], 10: [1, 2] };
+  var ODDS_PAY = { 4: [2, 1], 5: [3, 2], 6: [6, 5], 8: [6, 5], 9: [3, 2], 10: [2, 1] };
+  var HARD_PAY = { 4: 7, 6: 9, 8: 9, 10: 7 };
+  var BASE_PLACE = { 4: 100, 5: 125, 6: 150, 8: 150, 9: 125, 10: 100 };
+  var BASE_LAY = { 4: 1750, 5: 1275, 6: 990, 8: 990, 9: 1275, 10: 1750 };
+  /* 1x amounts. "even": every box hit pays ~$175. "mine": custom NO-10 / NO-4 plan, a seven nets ~+$150. */
+  var PRESETS = {
+    even: { name: "Even $175 (old built-in)", place: { 4: 100, 5: 125, 6: 150, 8: 150, 9: 125, 10: 100 }, lay: { 4: 1750, 5: 1275, 6: 990, 8: 990, 9: 1275, 10: 1750 } },
+    no10: { name: "My NO-10", avoid: 10, place: { 4: 100, 5: 100, 6: 150, 8: 150, 9: 100, 10: 100 }, lay: { 4: 1500, 5: 1125, 6: 840, 8: 840, 9: 1125, 10: 1500 } },
+    m75: { name: "My $75 on 4/10", place: { 4: 75, 5: 100, 6: 150, 8: 150, 9: 100, 10: 75 }, lay: { 4: 1450, 5: 1050, 6: 780, 8: 780, 9: 1050, 10: 1450 } },
+    no4: { name: "My NO-4", avoid: 4, place: { 4: 100, 5: 100, 6: 150, 8: 150, 9: 100, 10: 100 }, lay: { 4: 1500, 5: 1125, 6: 840, 8: 840, 9: 1125, 10: 1500 } }
+  };
+  var TIERS = [0.02, 0.04, 0.08, 0.16, 0.32, 0.64, 1, 1.25];
+  var AVOID_CHOICES = [4, 5, 6, 8, 9, 10, 7];
+  var BET_KEYS = ["pass", "passOdds", "dp", "dpOdds", "field"]
+    .concat(BOX.map(function (n) { return "place" + n; }))
+    .concat(BOX.map(function (n) { return "lay" + n; }))
+    .concat(HARDS.map(function (n) { return "hard" + n; }));
+
+  function money(x) { return Math.round((Number(x) + Number.EPSILON) * 100) / 100; }
+  function ratio(amt, r) { return money(amt * r[0] / r[1]); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function fmt(x) {
+    x = money(x); var neg = x < 0, a = Math.abs(x);
+    var s = a % 1 === 0 ? a.toLocaleString("en-US") : a.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return (neg ? "-$" : "$") + s;
+  }
+  function sfmt(x) { x = money(x); return (x > 0 ? "+" : "") + fmt(x); }
+  function label(k) {
+    if (k === "pass") return "Pass"; if (k === "passOdds") return "Pass odds";
+    if (k === "dp") return "Don't pass"; if (k === "dpOdds") return "DP odds";
+    if (k === "field") return "Field";
+    var m = k.match(/^(place|lay|hard)(\d+)$/);
+    if (!m) return k;
+    return (m[1] === "place" ? "Place " : m[1] === "lay" ? "NO-" : "Hard ") + m[2];
+  }
+  function shortLabel(k) {
+    var m = k.match(/^(place|lay|hard)(\d+)$/);
+    if (m) return (m[1] === "place" ? "P" : m[1] === "lay" ? "NO" : "H") + m[2];
+    return { pass: "PL", passOdds: "PLo", dp: "DP", dpOdds: "DPo", field: "F" }[k] || k;
+  }
+
+  /* ---------- rolls ---------- */
+  function normRoll(r) {
+    if (typeof r === "number" || typeof r === "string") r = { total: +r };
+    if (!r || typeof r !== "object") return null;
+    var total = +r.total, dice = null, hard = !!r.hard;
+    if (r.dice && r.dice.length === 2 && r.dice[0] >= 1 && r.dice[0] <= 6 && r.dice[1] >= 1 && r.dice[1] <= 6) {
+      dice = [+r.dice[0], +r.dice[1]]; total = dice[0] + dice[1]; hard = dice[0] === dice[1];
+    }
+    if (!(Number.isInteger(total) && total >= 2 && total <= 12)) return null;
+    if (HARDS.indexOf(total) < 0) hard = (total === 2 || total === 12); // 2/12 are always doubles
+    if (!dice && hard && total % 2 === 0) dice = [total / 2, total / 2];
+    if (!dice && total === 3) dice = [1, 2];
+    if (!dice && total === 11) dice = [5, 6];
+    return { total: total, hard: !!hard && total % 2 === 0, dice: dice };
+  }
+
+  /* text: "6 8 h8 4-4 7, 11" oldest -> newest */
+  function parseRolls(text) {
+    var src = String(text || "").replace(/[,;|]/g, " ").trim();
+    if (!src) return { rolls: [], skipped: [] };
+    var out = [], skipped = [];
+    src.split(/\s+/).forEach(function (tok) {
+      var m, r = null;
+      if ((m = tok.match(/^([1-6])[-/x]([1-6])$/i))) r = normRoll({ dice: [+m[1], +m[2]] });
+      else if ((m = tok.match(/^h(?:ard)?(4|6|8|10)$/i))) r = normRoll({ total: +m[1], hard: true });
+      else if ((m = tok.match(/^(1[012]|[2-9])$/))) r = normRoll({ total: +m[1] });
+      if (r) out.push(r); else skipped.push(tok);
+    });
+    return { rolls: out, skipped: skipped };
+  }
+
+  /* Accept craps.tracker.session.v1 export, our own export, an array, CSV, or plain text. */
+  function importRolls(text) {
+    var t = String(text || "").trim(), data = null;
+    if (/^[\[{]/.test(t)) { try { data = JSON.parse(t); } catch (e) { return { rolls: [], error: "Bad JSON: " + e.message }; } }
+    if (data) {
+      var list = null, source = "json";
+      if (Array.isArray(data)) list = data;
+      else if (data.session && Array.isArray(data.session.rolls)) { list = data.session.rolls; source = data.format || "tracker"; }
+      else if (Array.isArray(data.rolls)) { list = data.rolls; source = data.format || "rolls"; }
+      else if (typeof data.text === "string") return parseRolls(data.text);
+      if (!list) return { rolls: [], error: "No rolls found in JSON" };
+      var rolls = [], skipped = [];
+      list.forEach(function (x) { var r = normRoll(x); if (r) rolls.push(r); else skipped.push(JSON.stringify(x)); });
+      return { rolls: rolls, skipped: skipped, source: source };
+    }
+    var lines = t.split(/\r?\n/);
+    if (lines.length > 1 && /,/.test(lines[0]) && /[a-z]/i.test(lines[0]) && !/total|d1|dice/i.test(lines[0])) return { rolls: [], error: "CSV needs a total (or d1,d2 / dice) column" };
+    if (lines.length > 1 && /total|d1|dice/i.test(lines[0]) && /,/.test(lines[0])) {
+      var hdr = lines[0].split(",").map(function (s) { return s.trim().toLowerCase().replace(/"/g, ""); });
+      var it = hdr.indexOf("total"), ih = hdr.indexOf("hard"), id1 = hdr.indexOf("d1"), id2 = hdr.indexOf("d2"), idc = hdr.indexOf("dice");
+      var rs = [], sk = [];
+      lines.slice(1).forEach(function (ln) {
+        if (!ln.trim()) return;
+        var c = ln.split(",").map(function (s) { return s.trim().replace(/"/g, ""); }), o = { total: it >= 0 ? +c[it] : 0 };
+        if (ih >= 0) o.hard = /^(1|true|yes|h)$/i.test(c[ih]);
+        if (id1 >= 0 && id2 >= 0 && c[id1] && c[id2]) o.dice = [+c[id1], +c[id2]];
+        else if (idc >= 0 && /^[1-6]-[1-6]$/.test(c[idc])) o.dice = c[idc].split("-").map(Number);
+        var r = normRoll(o); if (r) rs.push(r); else sk.push(ln);
+      });
+      return { rolls: rs, skipped: sk, source: "csv" };
+    }
+    var p = parseRolls(t); p.source = "text"; return p;
+  }
+
+  /* ---------- hot / cold ---------- */
+  function zScore(obs, n, p) { if (!n) return 0; var sd = Math.sqrt(n * p * (1 - p)); return sd ? (obs - n * p) / sd : 0; }
+  function grade(z) { var a = Math.abs(z); var lvl = a >= 3 ? 3 : a >= 2 ? 2 : a >= 1 ? 1 : 0; return lvl === 0 ? "neu" : (z > 0 ? "hot" : "cold") + lvl; }
+  function windowRolls(rolls, win) { return win === "all" || !win ? rolls.slice() : rolls.slice(Math.max(0, rolls.length - win)); }
+  function hotCold(rolls, win) {
+    var w = windowRolls(rolls, win), n = w.length, out = {};
+    for (var t = 2; t <= 12; t++) {
+      var c = 0; w.forEach(function (r) { if (r.total === t) c++; });
+      var p = WAYS[t] / 36, z = zScore(c, n, p);
+      out[t] = { n: t, count: c, exp: n * p, z: z, grade: grade(z) };
+    }
+    return { n: n, totals: out };
+  }
+  /* hardways (only rolls of that total with known easy/hard); hops over rolls with known dice */
+  function heat(rolls, win) {
+    var w = windowRolls(rolls, win), n = w.length, hc = hotCold(rolls, win);
+    var hard = {};
+    HARDS.forEach(function (h) {
+      var c = 0; w.forEach(function (r) { if (r.total === h && r.hard) c++; });
+      var z = zScore(c, n, 1 / 36); hard[h] = { n: h, count: c, exp: n / 36, z: z, grade: grade(z) };
+    });
+    var known = w.filter(function (r) { return !!r.dice; }), hops = [];
+    for (var a = 1; a <= 6; a++) for (var b = a; b <= 6; b++) {
+      var c2 = 0; known.forEach(function (r) { var lo = Math.min(r.dice[0], r.dice[1]), hi = Math.max(r.dice[0], r.dice[1]); if (lo === a && hi === b) c2++; });
+      var p = a === b ? 1 / 36 : 2 / 36, z2 = zScore(c2, known.length, p);
+      hops.push({ key: a + "-" + b, count: c2, exp: known.length * p, z: z2, grade: grade(z2) });
+    }
+    return { n: n, totals: hc.totals, hard: hard, hops: hops, hopN: known.length };
+  }
+  /* coldest box number (lowest z) in window; null if fewer than 6 rolls */
+  function coldest(rolls, win) {
+    var hc = hotCold(rolls, win); if (hc.n < 6) return null;
+    var best = null;
+    BOX.forEach(function (n) { var z = hc.totals[n].z; if (best === null || z < hc.totals[best].z - 1e-12) best = n; });
+    return best;
+  }
+
+  /* ---------- state ---------- */
+  function defaultSettings() {
+    return { placeWorkComeout: false, hardWorkComeout: false, layVig: false, field12x3: false, maxCombined: 3000, ladderPop: 0.5 };
+  }
+  function newState(opts) {
+    opts = opts || {};
+    var s = {
+      start: money(opts.bankroll != null ? opts.bankroll : 5000), bank: 0, point: null,
+      bets: {}, plan: {}, settings: Object.assign(defaultSettings(), opts.settings || {}),
+      strat: Object.assign({ mode: "avoid", avoid: 4, tierIdx: 3, ladder: false, autoCold: false, coldWin: 24 }, opts.strat || {}),
+      ladder: { cur: null, frames: [] }, press: emptyPress(),
+      stats: { rolls: 0, peak: 0, maxDD: 0, minPL: 0, layWins: 0, layLosses: 0, sevenOuts: 0, pointsMade: 0, bySpot: {}, skipped: 0 },
+      log: []
+    };
+    s.bank = s.start;
+    if (opts.plan) s.plan = clone(opts.plan);
+    if (!s.strat.amounts) { s.strat.amounts = { place: clone(PRESETS.even.place), lay: clone(PRESETS.even.lay) }; s.strat.preset = "even"; }
+    else s.strat.amounts = clone(s.strat.amounts);
+    sync(s, []);
+    return s;
+  }
+  function onTable(s) { var t = 0; for (var k in s.bets) t += s.bets[k]; return money(t); }
+  function pl(s) { return money(s.bank + onTable(s) - s.start); }
+  function curTierIdx(s) { return s.ladder.cur != null ? s.ladder.cur : s.strat.tierIdx; }
+
+  /* desired avoid-strategy bets at a tier multiplier (cents exact) */
+  function amountsOf(s) { return (s && s.strat && s.strat.amounts) || { place: BASE_PLACE, lay: BASE_LAY }; }
+  function avoidBets(avoid, mult, am) {
+    am = am || { place: BASE_PLACE, lay: BASE_LAY }; var b = {};
+    BOX.forEach(function (n) { if (n !== avoid && am.place[n] > 0) b["place" + n] = money(am.place[n] * mult); });
+    if (avoid !== 7 && am.lay[avoid] > 0) b["lay" + avoid] = money(am.lay[avoid] * mult);
+    return b;
+  }
+  /* what the avoid plan does at a tier: a seven-out net (point on) and the win on each box hit */
+  function planPreview(am, avoid, mult) {
+    var b = avoidBets(avoid, mult, am), seven = 0, hits = {};
+    BOX.forEach(function (n) { if (b["place" + n]) { seven -= b["place" + n]; hits[n] = ratio(b["place" + n], PLACE_PAY[n]); } });
+    if (b["lay" + avoid]) { seven += ratio(b["lay" + avoid], LAY_PAY[avoid]); hits[avoid] = -b["lay" + avoid]; }
+    return { bets: b, seven: money(seven), hits: hits, total: sum(b) };
+  }
+  /* lay sizes (1x) so a seven-out nets about `target` with these place amounts, rounded to $5 */
+  function sizeLays(place, target, vig) {
+    var lay = {}, f = vig ? 0.95 : 1;
+    BOX.forEach(function (n) {
+      var others = 0; BOX.forEach(function (m) { if (m !== n) others += place[m] || 0; });
+      lay[n] = Math.max(0, Math.round((others + target) / f * LAY_PAY[n][1] / LAY_PAY[n][0] / 5) * 5);
+    });
+    return lay;
+  }
+  function pressUnitFor(n, unit) { return money(n === 6 || n === 8 ? unit * 6 / 5 : unit); }
+  function emptyPress() { return { extra: {}, mode: null, across: {}, hits: 0 }; }
+  function sum(o) { var t = 0; for (var k in o) t += o[k] || 0; return money(t); }
+  function manualPart(s) {
+    var p = {};
+    for (var k in s.plan) {
+      if (!(s.plan[k] > 0)) continue;
+      if (s.strat.mode === "avoid" && /^(place|lay)\d+$/.test(k)) continue;
+      p[k] = s.plan[k];
+    }
+    return p;
+  }
+  /* highest tier index <= want that fits the combined max together with the manual bets */
+  /* highest tier <= want whose WHOLE avoid set (places + lay) fits both the table max and the cash available,
+     so a short bankroll steps the tier down instead of leaving places up without their lay */
+  function fitTier(s, want) {
+    var man = sum(manualPart(s)) + sum((s.press && s.press.extra) || {}), max = s.settings.maxCombined || Infinity;
+    var avail = money(s.bank + onTable(s));
+    for (var i = want; i >= 0; i--) { var need = sum(avoidBets(s.strat.avoid, TIERS[i], amountsOf(s))) + man; if (need <= max + 1e-9 && need <= avail + 1e-9) return i; }
+    return -1;
+  }
+  /* why fitTier capped: "max", "cash" or null */
+  function capReason(s, want) {
+    var i = fitTier(s, want); if (i === want) return null;
+    var man = sum(manualPart(s)), max = s.settings.maxCombined || Infinity;
+    return sum(avoidBets(s.strat.avoid, TIERS[want], amountsOf(s))) + man > max + 1e-9 ? "max" : "cash";
+  }
+  function addTo(d, a) { for (var k in a) d[k] = money((d[k] || 0) + a[k]); }
+  function desired(s) {
+    var d = manualPart(s), P = s.press || emptyPress();
+    if (P.mode) for (var m in d) if (/^(place|lay)\d+$/.test(m)) delete d[m]; // manual-mode box bets come down too
+    if (P.mode === "down") return d;                         // everything strategy-driven taken down
+    if (P.mode === "across") { addTo(d, P.across); return d; } // small across spread, no lay
+    if (s.strat.mode === "avoid") {
+      var i = fitTier(s, curTierIdx(s));
+      if (i >= 0) addTo(d, avoidBets(s.strat.avoid, TIERS[i], amountsOf(s)));
+    }
+    for (var k in P.extra) if (d[k] > 0) d[k] = money(d[k] + P.extra[k]); // presses ride on an existing place bet
+    if (!(d.dp > 0)) delete d.dpOdds;     // DP odds come down with Don't pass
+    if (!(d.pass > 0)) delete d.passOdds;
+    return d;
+  }
+  function canAdd(s, k) {
+    if (k === "pass" || k === "dp") return s.point == null;
+    if (k === "passOdds") return s.point != null && s.bets.pass > 0;
+    if (k === "dpOdds") return s.point != null && s.bets.dp > 0;
+    return true;
+  }
+  function canRemove(s, k) { return !(k === "pass" && s.point != null); }
+
+  /* bring table bets in line with desired (strategy + manual plan) */
+  function sync(s, notes) {
+    var d = desired(s), keys = {}, k;
+    for (k in d) keys[k] = 1; for (k in s.bets) keys[k] = 1;
+    // removals first (frees bankroll)
+    for (k in keys) {
+      var have = s.bets[k] || 0, want = d[k] || 0;
+      if (have > want + 1e-9 && canRemove(s, k)) { s.bank = money(s.bank + have - want); if (want > 0) s.bets[k] = money(want); else delete s.bets[k]; }
+    }
+    var max = s.settings.maxCombined || Infinity;
+    BET_KEYS.forEach(function (k) {
+      var have = s.bets[k] || 0, want = d[k] || 0;
+      if (want <= have + 1e-9 || !canAdd(s, k)) return;
+      var add = money(want - have);
+      if (onTable(s) + add > max + 1e-9) { notes && notes.push(label(k) + " not placed: over " + fmt(max) + " max"); return; }
+      if (s.bank + 1e-9 < add) { notes && notes.push(label(k) + " not placed: bankroll short"); s._short = true; return; }
+      s.bank = money(s.bank - add); s.bets[k] = money(want);
+    });
+    return s;
+  }
+
+  /* ---------- settlement ---------- */
+  function settle(s, roll) {
+    var r = normRoll(roll); if (!r) throw new Error("bad roll");
+    var t = r.total, p = s.point, comeout = p == null, set = s.settings, lines = [], net = 0, layNet = 0, stratNet = 0, placeHit = null;
+    var stratKeys = s.strat.mode === "avoid" ? avoidBets(s.strat.avoid, 1, amountsOf(s)) : {};
+    function rec(k, amt) { s.stats.bySpot[k] = money((s.stats.bySpot[k] || 0) + amt); net = money(net + amt); if (stratKeys[k] != null) stratNet = money(stratNet + amt); if (/^lay/.test(k)) layNet = money(layNet + amt); }
+    function win(k, w, keep) { s.bank = money(s.bank + w + (keep ? 0 : s.bets[k])); if (!keep) delete s.bets[k]; rec(k, w); lines.push({ k: k, amt: w }); }
+    function lose(k) { var a = s.bets[k]; delete s.bets[k]; rec(k, -a); lines.push({ k: k, amt: -a }); }
+    function push(k) { s.bank = money(s.bank + s.bets[k]); delete s.bets[k]; lines.push({ k: k, amt: 0, push: true }); }
+    var b = s.bets;
+    // field (one roll)
+    if (b.field) {
+      if (t === 2 || t === 12) win("field", money(b.field * (t === 12 && set.field12x3 ? 3 : 2)), true);
+      else if ([3, 4, 9, 10, 11].indexOf(t) >= 0) win("field", b.field, true);
+      else lose("field");
+    }
+    // hardways
+    HARDS.forEach(function (h) {
+      var k = "hard" + h; if (!b[k]) return;
+      if (comeout && !set.hardWorkComeout) return;
+      if (t === 7) lose(k);
+      else if (t === h) { if (r.hard) win(k, money(b[k] * HARD_PAY[h]), true); else lose(k); }
+    });
+    // place
+    BOX.forEach(function (n) {
+      var k = "place" + n; if (!b[k]) return;
+      if (comeout && !set.placeWorkComeout) return;
+      if (t === 7) lose(k); else if (t === n) { win(k, ratio(b[k], PLACE_PAY[n]), true); placeHit = n; }
+    });
+    // lay (always working)
+    BOX.forEach(function (n) {
+      var k = "lay" + n; if (!b[k]) return;
+      if (t === 7) { var w = ratio(b[k], LAY_PAY[n]); if (set.layVig) w = money(w - Math.max(0.01, money(w * 0.05))); win(k, w, true); s.stats.layWins++; }
+      else if (t === n) { lose(k); s.stats.layLosses++; }
+    });
+    // line bets
+    if (comeout) {
+      if (b.pass) { if (t === 7 || t === 11) win("pass", b.pass, true); else if (t === 2 || t === 3 || t === 12) lose("pass"); }
+      if (b.dp) { if (t === 2 || t === 3) win("dp", b.dp, true); else if (t === 12) push("dp"); else if (t === 7 || t === 11) lose("dp"); }
+      if (BOX.indexOf(t) >= 0) s.point = t;
+    } else {
+      if (t === p) {
+        if (b.pass) win("pass", b.pass, true);
+        if (b.passOdds) win("passOdds", ratio(b.passOdds, ODDS_PAY[p]), false);
+        if (b.dp) lose("dp"); if (b.dpOdds) lose("dpOdds");
+        s.point = null; s.stats.pointsMade++;
+      } else if (t === 7) {
+        if (b.pass) lose("pass"); if (b.passOdds) lose("passOdds");
+        if (b.dp) win("dp", b.dp, true);
+        if (b.dpOdds) win("dpOdds", ratio(b.dpOdds, LAY_PAY[p]), false);
+        s.point = null; s.stats.sevenOuts++;
+      }
+    }
+    return { roll: r, lines: lines, net: net, layNet: layNet, stratNet: stratNet, comeout: comeout, pointBefore: p, pointAfter: s.point, placeHit: placeHit };
+  }
+
+  /* recovery ladder: lay loss at tier i -> go to i+1 until gains since the loss exceed ladderPop × loss, then return */
+  function ladderStep(s, res) {
+    if (s.strat.mode !== "avoid" || !s.strat.ladder) { s.ladder = { cur: null, frames: [] }; return null; }
+    var L = s.ladder, note = null, layLoss = 0;
+    res.lines.forEach(function (x) { if (/^lay/.test(x.k) && x.amt < 0) layLoss = money(layLoss - x.amt); });
+    var cur = curTierIdx(s);
+    if (layLoss > 0) {
+      L.frames.forEach(function (f) { f.got = money(f.got + res.stratNet); });
+      var up = Math.min(TIERS.length - 1, cur + 1), fit = fitTier(s, up);
+      if (fit < 0) fit = cur;
+      L.frames.push({ ret: cur, need: money(layLoss * (s.settings.ladderPop || 0.5)), got: 0, loss: layLoss });
+      L.cur = fit;
+      note = "Lay lost " + fmt(layLoss) + " → tier " + TIERS[fit] + "× until +" + fmt(layLoss * (s.settings.ladderPop || 0.5)) + " back" + (fit === cur ? " (capped by max)" : "");
+    } else if (L.frames.length) {
+      L.frames.forEach(function (f) { f.got = money(f.got + res.stratNet); });
+      var popped = false;
+      while (L.frames.length && L.frames[L.frames.length - 1].got > L.frames[L.frames.length - 1].need + 1e-9) { var f = L.frames.pop(); L.cur = f.ret; popped = true; }
+      if (popped) { if (!L.frames.length) L.cur = null; note = "Recovered → back to tier " + TIERS[curTierIdx(s)] + "×"; }
+    }
+    return note;
+  }
+
+  function roll(s, rr, opts) {
+    opts = opts || {};
+    var r = normRoll(rr); if (!r) throw new Error("bad roll");
+    var bankBefore = s.bank, plBefore = pl(s), tierAt = TIERS[curTierIdx(s)], avoidAt = s.strat.mode === "avoid" ? s.strat.avoid : null;
+    var res = settle(s, r);
+    var notes = [];
+    var P = s.press || (s.press = emptyPress());
+    if (res.placeHit != null) P.hits++;
+    if (res.pointBefore != null && r.total === 7) {
+      if (P.mode || Object.keys(P.extra).length) notes.push("Seven-out: presses/take-down cleared, back to plan");
+      s.press = emptyPress();
+    }
+    var ln = ladderStep(s, res); if (ln) notes.push(ln);
+    if (s.strat.autoCold && s.strat.mode === "avoid" && s.strat.avoid !== 7 && opts.history) {
+      var c = coldest(opts.history.concat([r]), s.strat.coldWin || 24);
+      if (c && c !== s.strat.avoid) { notes.push("Auto-cold: avoid " + s.strat.avoid + " → " + c); s.strat.avoid = c; }
+    }
+    s._short = false; sync(s, notes); if (s._short) s.stats.skipped++; delete s._short;
+    var after = pl(s); s.stats.rolls++;
+    if (after > s.stats.peak) s.stats.peak = after;
+    s.stats.maxDD = Math.max(s.stats.maxDD, money(s.stats.peak - after));
+    s.stats.minPL = Math.min(s.stats.minPL, after);
+    var entry = { roll: r, lines: res.lines, net: res.net, notes: notes, pointBefore: res.pointBefore, pointAfter: res.pointAfter, placeHit: res.placeHit, pl: after, bank: s.bank, tier: tierAt, avoid: avoidAt, tierNext: TIERS[curTierIdx(s)] };
+    return entry;
+  }
+
+  function resultLine(e) {
+    if (!e) return "";
+    var r = e.roll, head = "Rolled " + (r.hard && HARDS.indexOf(r.total) >= 0 ? "hard " : "") + r.total + (r.dice ? " (" + r.dice.join("-") + ")" : "");
+    var ls = e.lines.filter(function (x) { return x.amt !== 0 || x.push; });
+    var lostPlaces = ls.filter(function (x) { return /^place/.test(x.k) && x.amt < 0; });
+    if (lostPlaces.length > 1) { // compact seven-out: "Places -$600"
+      var tot = 0; lostPlaces.forEach(function (x) { tot += x.amt; });
+      ls = [{ k: "places", amt: money(tot) }].concat(ls.filter(function (x) { return lostPlaces.indexOf(x) < 0; }));
+    }
+    var parts = ls.map(function (x) { return (x.k === "places" ? "Places" : shortLabel(x.k)) + " " + (x.push ? "push" : sfmt(x.amt)); });
+    var pt = e.pointBefore == null && e.pointAfter != null ? " · point " + e.pointAfter : e.pointBefore != null && e.pointAfter == null ? (r.total === 7 ? " · seven-out" : " · point made") : "";
+    return head + pt + ": " + (parts.length ? parts.join(", ") : "no action") + " · net " + sfmt(e.net);
+  }
+
+  /* run a list of rolls through a fresh state with the given config */
+  function replay(rolls, cfg) {
+    cfg = cfg || {};
+    var s = newState(cfg), hist = (cfg.seed || []).map(normRoll).filter(Boolean), series = [], log = [];
+    rolls.forEach(function (x) {
+      var r = normRoll(x); if (!r) return;
+      var e = roll(s, r, { history: hist }); hist.push(r); series.push(e.pl); log.push(e);
+    });
+    return { state: s, pl: pl(s), bank: s.bank, onTable: onTable(s), maxDD: s.stats.maxDD, peak: s.stats.peak, minPL: s.stats.minPL, rolls: series.length, layWins: s.stats.layWins, layLosses: s.stats.layLosses, series: series, log: log, bySpot: s.stats.bySpot, skipped: s.stats.skipped };
+  }
+
+  /* bring an older saved state (craps.play.v1, schema 1) up to date in place; returns it */
+  function migrate(s) {
+    if (!s || typeof s !== "object") return s;
+    s.settings = Object.assign(defaultSettings(), s.settings || {});
+    s.strat = Object.assign({ mode: "avoid", avoid: 4, tierIdx: 3, ladder: false, autoCold: false, coldWin: 24 }, s.strat || {});
+    if (!s.strat.amounts || !s.strat.amounts.place || !s.strat.amounts.lay) { s.strat.amounts = { place: clone(BASE_PLACE), lay: clone(BASE_LAY) }; s.strat.preset = "even"; }
+    if (!s.press || !s.press.extra) s.press = emptyPress();
+    if (!s.ladder || !s.ladder.frames) s.ladder = { cur: null, frames: [] };
+    s.bets = s.bets || {}; s.plan = s.plan || {};
+    return s;
+  }
+  function applyPreset(s, id) {
+    var p = PRESETS[id]; if (!p) return ["Unknown preset"];
+    s.strat.amounts = { place: clone(p.place), lay: clone(p.lay) }; s.strat.preset = id;
+    if (p.avoid) s.strat.avoid = p.avoid;
+    s.ladder = { cur: null, frames: [] };
+    var n = []; sync(s, n); return n;
+  }
+  function setAmount(s, kind, num, amt) {
+    if (kind !== "place" && kind !== "lay") return [];
+    s.strat.amounts[kind][num] = money(Math.max(0, +amt || 0)); s.strat.preset = "custom";
+    var n = []; sync(s, n); return n;
+  }
+  function setLays(s, target) { s.strat.amounts.lay = sizeLays(s.strat.amounts.place, money(+target || 0), s.settings.layVig); s.strat.preset = "custom"; var n = []; sync(s, n); return n; }
+  /* pressing flow (works on top of the strategy; cleared on a seven-out) */
+  function press(s, num, unit) {
+    var P = s.press, k = "place" + num, u = pressUnitFor(num, unit), d = desired(s);
+    if (!(d[k] > 0)) return ["No place bet on " + num + " to press"];
+    if (P.mode === "across") P.across[k] = money((P.across[k] || 0) + u); else P.extra[k] = money((P.extra[k] || 0) + u);
+    var n = ["Pressed " + num + " +" + fmt(u)]; sync(s, n); return n;
+  }
+  function regress(s) {
+    var P = s.press, had = Object.keys(P.extra).length;
+    P.extra = {};
+    var n = [had ? "Presses removed, back to base spread" : "Nothing pressed"]; sync(s, n); return n;
+  }
+  function takeDown(s) {
+    var P = s.press; P.extra = {};
+    P.mode = P.mode === "down" ? null : "down";
+    var n = [P.mode ? "All strategy bets down" : "Strategy bets back up"]; sync(s, n); return n;
+  }
+  function across(s, unit) {
+    var P = s.press; P.extra = {};
+    if (P.mode === "across") { P.mode = null; var n0 = ["Across off, back to plan"]; sync(s, n0); return n0; }
+    P.mode = "across"; P.across = {};
+    BOX.forEach(function (x) { P.across["place" + x] = pressUnitFor(x, unit); });
+    var n = ["Across " + fmt(unit) + " (6/8 " + fmt(pressUnitFor(6, unit)) + "), no lay"]; sync(s, n); return n;
+  }
+
+  function setStrat(s, patch) {
+    var reset = (patch.tierIdx != null && patch.tierIdx !== s.strat.tierIdx) || (patch.mode && patch.mode !== s.strat.mode) || patch.ladder === false;
+    Object.assign(s.strat, patch); if (reset) s.ladder = { cur: null, frames: [] };
+    var n = []; sync(s, n); return n;
+  }
+  /* tell the tracker a point is already on (joining mid-hand) or turn it off; no money moves */
+  function setPoint(s, n) {
+    n = +n; s.point = BOX.indexOf(n) >= 0 ? n : null;
+    var notes = []; sync(s, notes); return notes;
+  }
+  function setPlan(s, k, amt) { amt = money(Math.max(0, amt || 0)); if (amt > 0) s.plan[k] = amt; else delete s.plan[k]; var n = []; sync(s, n); return n; }
+  function setSetting(s, k, v) { s.settings[k] = v; var n = []; sync(s, n); return n; }
+
+  return {
+    BOX: BOX, HARDS: HARDS, WAYS: WAYS, PLACE_PAY: PLACE_PAY, LAY_PAY: LAY_PAY, ODDS_PAY: ODDS_PAY, HARD_PAY: HARD_PAY,
+    BASE_PLACE: BASE_PLACE, BASE_LAY: BASE_LAY, TIERS: TIERS, AVOID_CHOICES: AVOID_CHOICES, BET_KEYS: BET_KEYS,
+    money: money, fmt: fmt, sfmt: sfmt, label: label, shortLabel: shortLabel, clone: clone,
+    normRoll: normRoll, setPoint: setPoint, capReason: capReason, parseRolls: parseRolls, importRolls: importRolls,
+    zScore: zScore, grade: grade, hotCold: hotCold, heat: heat, coldest: coldest,
+    newState: newState, onTable: onTable, pl: pl, curTierIdx: curTierIdx, avoidBets: avoidBets, fitTier: fitTier, desired: desired,
+    sync: sync, settle: settle, ladderStep: ladderStep, roll: roll, resultLine: resultLine, replay: replay,
+    setStrat: setStrat, setPlan: setPlan, setSetting: setSetting, defaultSettings: defaultSettings,
+    PRESETS: PRESETS, planPreview: planPreview, sizeLays: sizeLays, pressUnitFor: pressUnitFor, migrate: migrate,
+    applyPreset: applyPreset, setAmount: setAmount, setLays: setLays, press: press, regress: regress, takeDown: takeDown, across: across
+  };
+});
+
+</script>
+<script id="store">
+/* Craps Play — compact, event-sourced storage (no DOM). Node + browser.
+   Why: v1 saved one big blob (craps.play.v1) holding every session's full per-roll history objects plus
+   up to 40 full-state undo snapshots, rewritten on every tap. On file:// pages all craps apps share one
+   ~5 MB localStorage, so it eventually hit the quota and saves started failing.
+   v2 layout:
+     craps.play.v2            small index {v:2, cur, prefs, order, meta:{id:{name,created,updated,n,pl}}, mig:{id:n}}
+     craps.play.v2.s.<id>     one session: {v:2,id,name,created,updated,cfg,seed0,r,ts,ops,base}
+       r    rolls as one string "6 8 3-4 h8 7" (C.parseRolls format)
+       ts   seconds since `created` per roll (null if unknown)
+       ops  bet/strategy changes [[atRoll, name, ...args]] applied before roll #atRoll
+       base null, or for migrated/restored sessions {n, state, hist:[[line,net,pl,pt,hit,tier,avoid]]}
+   State and history are rebuilt by replaying; undo = drop the last event and replay (no snapshots stored). */
+(function (root, factory) {
+  if (typeof module !== "undefined" && module.exports) module.exports = factory(require("./engine.js"));
+  else root.CrapsStore = factory(root.CrapsPlay);
+})(typeof globalThis !== "undefined" ? globalThis : this, function (C) {
+  "use strict";
+  var IDX = "craps.play.v2", SKEY = "craps.play.v2.s.", OLD = "craps.play.v1", OLDBAK = "craps.play.v1.bak";
+  var OTHER = { "craps.cmdlog.v1": "Craps game (craps.html / v2) command log", "craps.tracker.v1": "Roll tracker" };
+
+  /* ---------- rolls ---------- */
+  function encRoll(r) {
+    var short = (r.hard && C.HARDS.indexOf(r.total) >= 0 ? "h" : "") + r.total;
+    if (!r.dice) return short;
+    var t = r.total, inf = r.hard ? [t / 2, t / 2] : t === 3 ? [1, 2] : t === 11 ? [5, 6] : null; // what normRoll infers from the short form
+    if (inf && inf[0] === r.dice[0] && inf[1] === r.dice[1]) return short;
+    return r.dice[0] + "-" + r.dice[1];
+  }
+  function encRolls(list) { return (list || []).map(function (r) { return encRoll(C.normRoll(r)); }).join(" "); }
+  function decRolls(str) { return str ? C.parseRolls(str).rolls : []; }
+
+  /* ---------- ops (every bet / strategy change; same code live and on replay) ---------- */
+  function applyOp(s, op) {
+    var a = op;
+    switch (a[0]) {
+      case "avoid": return C.setStrat(s, { avoid: a[1] });
+      case "point": return C.setPoint(s, a[1]);
+      case "unit": s.strat.unit = a[1]; return [];
+      case "preset": return [C.PRESETS[a[1]] ? C.PRESETS[a[1]].name + " loaded" : "?"].concat(C.applyPreset(s, a[1]));
+      case "plan": return C.setPlan(s, a[1], a[2]);
+      case "coldWin": s.strat.coldWin = a[1]; return [];
+      case "tier": return C.setStrat(s, { tierIdx: a[1] });
+      case "ladder": return C.setStrat(s, { ladder: !!a[1] });
+      case "mode": return C.setStrat(s, { mode: a[1] });
+      case "press": return C.press(s, a[1], a[2]);
+      case "regress": return C.regress(s);
+      case "down": return C.takeDown(s);
+      case "across": return C.across(s, a[1]);
+      case "lays": return ["Lays sized for a " + C.sfmt(a[1]) + " seven-out at 1×"].concat(C.setLays(s, a[1]));
+      case "amt": return C.setAmount(s, a[1], a[2], a[3]);
+      case "set": return C.setSetting(s, a[1], a[2]);
+      case "autoCold": s.strat.autoCold = !!a[1]; return [];
+      case "clear": Object.keys(s.plan).forEach(function (k) { if (s.strat.mode === "manual" || !/^(place|lay)\d+$/.test(k)) delete s.plan[k]; }); var n = []; C.sync(s, n); return n;
+      case "seed": return []; // session-level, handled by the caller
+    }
+    return ["Unknown change " + a[0]];
+  }
+
+  /* ---------- sessions ---------- */
+  function uid() { return "p-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7); }
+  function newSession(opts) {
+    opts = opts || {};
+    var now = new Date().toISOString();
+    var x = { id: opts.id || uid(), name: opts.name || ("Session " + new Date().toLocaleString()), created: now, updated: now,
+      cfg: C.clone(opts.cfg || {}), seed0: encRolls(opts.seed || []), ops: [], tsArr: [], base: null, rolls: [] };
+    return rebuild(x);
+  }
+  function histEntry(e, ts) { return { roll: e.roll, line: C.resultLine(e), net: e.net, pl: e.pl, notes: e.notes, pt: e.pointAfter, hit: e.placeHit, ts: ts, tier: e.tier, avoid: e.avoid }; }
+  function tsIso(x, i) { var v = x.tsArr[i]; return v == null ? null : new Date(Date.parse(x.created) + v * 1000).toISOString(); }
+  function legacyEntry(h, r, ts) {
+    h = h || [];
+    return { roll: r, line: h[0] || ("Rolled " + (r.hard && C.HARDS.indexOf(r.total) >= 0 ? "hard " : "") + r.total + " (details trimmed)"), net: h[1] || 0, pl: h[2] || 0, notes: [], pt: h[3] == null ? null : h[3], hit: h[4] == null ? null : h[4], ts: ts, tier: h[5] == null ? null : h[5], avoid: h[6] == null ? null : h[6], legacy: true };
+  }
+  /* rebuild state + history + seed from cfg/base + rolls + ops (x.rolls are normalized roll objects) */
+  function rebuild(x) {
+    var rolls = x.rolls, seed = decRolls(x.seed0), state, hist = [], start = 0, ops = x.ops, oi = 0;
+    if (x.base) {
+      state = C.migrate(C.clone(x.base.state)); start = Math.min(x.base.n, rolls.length);
+      for (var j = 0; j < start; j++) hist.push(legacyEntry(x.base.hist[j], rolls[j], tsIso(x, j)));
+    } else state = C.newState(x.cfg || {});
+    while (oi < ops.length && ops[oi][0] < start) oi++;
+    var seen = seed.concat(rolls.slice(0, start));
+    for (var i = start; i <= rolls.length; i++) {
+      while (oi < ops.length && ops[oi][0] === i) {
+        var op = ops[oi].slice(1);
+        if (op[0] === "seed") { seed = decRolls(op[1]); seen = seed.concat(rolls.slice(0, i)); }
+        else applyOp(state, op);
+        oi++;
+      }
+      if (i < rolls.length) { var e = C.roll(state, rolls[i], { history: seen }); seen.push(rolls[i]); hist.push(histEntry(e, tsIso(x, i))); }
+    }
+    rolls.forEach(function (r, k) { r.ts = tsIso(x, k); });
+    x.state = state; x.history = hist; x.seed = seed; x._undo = [];
+    return x;
+  }
+  function dirtyEquals(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+  /* live actions: same code path as replay */
+  var UNDO_MEM = 60; // fast undo: recent pre-event states kept in memory only (never stored); older undos replay
+  function remember(x) { var u = x._undo || (x._undo = []); u.push({ ev: x.rolls.length + x.ops.length, state: C.clone(x.state), seed: x.seed }); if (u.length > UNDO_MEM) u.shift(); }
+  function addRoll(x, r, ts) {
+    r = C.normRoll(r); if (!r) return null;
+    remember(x);
+    var e = C.roll(x.state, r, { history: x.seed.concat(x.rolls) });
+    var sec = ts === null ? null : Math.max(0, Math.round(((ts ? Date.parse(ts) : Date.now()) - Date.parse(x.created)) / 1000));
+    x.rolls.push(r); x.tsArr.push(sec); r.ts = tsIso(x, x.rolls.length - 1);
+    var h = histEntry(e, r.ts); x.history.push(h); x.updated = new Date().toISOString();
+    return e;
+  }
+  /* returns {changed, notes}; an op that changes nothing is not recorded */
+  function addOp(x, op) {
+    if (op[0] === "seed") { remember(x); x.ops.push([x.rolls.length].concat(op)); x.seed = decRolls(op[1]); x.updated = new Date().toISOString(); return { changed: true, notes: [] }; }
+    var before = JSON.stringify(x.state), prev = JSON.parse(before), notes = applyOp(x.state, op);
+    if (JSON.stringify(x.state) === before) return { changed: false, notes: notes };
+    var u = x._undo || (x._undo = []); u.push({ ev: x.rolls.length + x.ops.length, state: prev, seed: x.seed }); if (u.length > UNDO_MEM) u.shift();
+    x.ops.push([x.rolls.length].concat(op)); x.updated = new Date().toISOString();
+    return { changed: true, notes: notes };
+  }
+  /* undo the last event; returns {what:"roll"|"op"|null, op} */
+  function undo(x) {
+    var last = x.ops[x.ops.length - 1], floor = x.base ? x.base.n : 0, u = x._undo || [], top = u[u.length - 1];
+    var fast = top && top.ev === x.rolls.length + x.ops.length - 1;
+    function restore() { if (fast) { u.pop(); x.state = top.state; x.seed = top.seed; } else rebuild(x); }
+    if (last && last[0] === x.rolls.length) { x.ops.pop(); restore(); return { what: "op", op: last.slice(1) }; }
+    if (x.rolls.length > floor) { x.rolls.pop(); x.tsArr.pop(); if (fast) x.history.pop(); restore(); return { what: "roll" }; }
+    return { what: null, floor: floor };
+  }
+  function opLabel(op) {
+    var a = op;
+    switch (a[0]) {
+      case "avoid": return "avoid " + (a[1] === 7 ? "none" : a[1]);
+      case "point": return "point " + (a[1] ? a[1] : "off");
+      case "unit": return "unit " + C.fmt(a[1]);
+      case "preset": return (C.PRESETS[a[1]] || { name: a[1] }).name;
+      case "plan": return C.label(String(a[1])) + " " + C.fmt(a[2]);
+      case "coldWin": return "cold window " + a[1];
+      case "tier": return "tier " + C.TIERS[a[1]] + "×";
+      case "ladder": return "ladder " + (a[1] ? "on" : "off");
+      case "mode": return "switch to " + (a[1] === "manual" ? "Manual" : "Avoid");
+      case "press": return "press " + a[1];
+      case "down": return "take down / back up";
+      case "lays": return "size lays";
+      case "amt": return a[1] + " " + a[2] + " amount";
+      case "autoCold": return "auto-cold " + (a[1] ? "on" : "off");
+      case "clear": return "clear bets";
+      case "seed": return "seed rolls";
+    }
+    return String(a[0]);
+  }
+
+  /* ---------- (de)serialize ---------- */
+  function compactHist(h) { return [h.line == null ? null : h.line, h.net, h.pl, h.pt == null ? null : h.pt, h.hit == null ? null : h.hit, h.tier == null ? null : h.tier, h.avoid == null ? null : h.avoid]; }
+  function toRecord(x) {
+    var rec = { v: 2, id: x.id, name: x.name, created: x.created, updated: x.updated, cfg: x.cfg || {}, seed0: x.seed0 || "", r: encRolls(x.rolls), ts: x.tsArr, ops: x.ops, base: null };
+    if (x.base) rec.base = { n: x.base.n, state: x.base.state, hist: x.base.hist };
+    return rec;
+  }
+  function fromRecord(rec) {
+    var x = { id: rec.id, name: rec.name, created: rec.created, updated: rec.updated, cfg: rec.cfg || {}, seed0: rec.seed0 || "", ops: rec.ops || [], tsArr: rec.ts || [], base: rec.base || null, rolls: decRolls(rec.r) };
+    while (x.tsArr.length < x.rolls.length) x.tsArr.push(null);
+    x.tsArr.length = x.rolls.length;
+    return rebuild(x);
+  }
+  function meta(x) { return { name: x.name, created: x.created, updated: x.updated, n: x.rolls.length, pl: C.pl(x.state) }; }
+
+  /* ---------- v1 blob migration ---------- */
+  function fromV1Session(o, idOverride, nameSuffix) {
+    var rolls = (o.rolls || []).map(C.normRoll).filter(Boolean);
+    var created = o.created || new Date().toISOString(), base = Date.parse(created) || Date.now();
+    var x = { id: idOverride || o.id, name: (o.name || "Session") + (nameSuffix || ""), created: created, updated: o.updated || created, cfg: {}, seed0: encRolls(o.seed || []), ops: [],
+      tsArr: (o.rolls || []).filter(function (r) { return C.normRoll(r); }).map(function (r) { return r.ts ? Math.max(0, Math.round((Date.parse(r.ts) - base) / 1000)) : null; }),
+      rolls: rolls, base: { n: rolls.length, state: C.migrate(C.clone(o.state)), hist: rolls.map(function (r, i) { var h = (o.history || [])[i]; return h ? compactHist(h) : [null, 0, 0, null, null, null, null]; }) } };
+    x.base.state = stripState(x.base.state);
+    return rebuild(x);
+  }
+  function stripState(s) { if (s && s.log) s.log = []; return s; }
+  function parseV1(raw) {
+    var d = JSON.parse(raw);
+    if (!d || d.v !== 1 || !d.sessions || typeof d.sessions !== "object") throw new Error("not a craps.play.v1 save");
+    return d;
+  }
+  /* same money and bets after migration? */
+  function sameAs(o, x) { return x.rolls.length === (o.rolls || []).filter(function (r) { return C.normRoll(r); }).length && C.money(x.state.bank) === C.money(o.state.bank) && dirtyEquals(x.state.bets, o.state.bets); }
+
+  /* ---------- the store (wraps a Storage-like object) ---------- */
+  function isQuota(e) { return e && (e.name === "QuotaExceededError" || e.code === 22 || e.code === 1014 || /quota|exceeded|full/i.test(e.message || "")); }
+  function Store(ls) {
+    this.ls = ls; this.db = null; this.unsaved = false; this.lastError = null; this.events = [];
+  }
+  Store.prototype.log = function (m) { this.events.push(m); };
+  Store.prototype.get = function (k) { try { return this.ls.getItem(k); } catch (e) { return null; } };
+  Store.prototype.set = function (k, v) { this.ls.setItem(k, v); };
+  Store.prototype.del = function (k) { try { this.ls.removeItem(k); } catch (e) {} };
+  Store.prototype.keys = function () { var out = []; try { for (var i = 0; i < this.ls.length; i++) out.push(this.ls.key(i)); } catch (e) {} return out; };
+  Store.prototype.cur = function () { return this.db && this.db.cur ? this.db.sessions[this.db.cur] : null; };
+  Store.prototype.index = function () {
+    var d = this.db, metaMap = {};
+    Object.keys(d.sessions).forEach(function (id) { metaMap[id] = meta(d.sessions[id]); });
+    return JSON.stringify({ v: 2, cur: d.cur, prefs: d.prefs, meta: metaMap, mig: d.mig || {} });
+  };
+
+  /* load v2 (and fold in any v1 blob). Returns notes for the user. */
+  Store.prototype.load = function () {
+    var notes = [], self = this, d = { v: 2, cur: null, prefs: { win: 24 }, sessions: {}, mig: {}, bad: [] };
+    var rawIdx = this.get(IDX), idx = null;
+    if (rawIdx) { try { idx = JSON.parse(rawIdx); } catch (e) { idx = null; notes.push("Session index was unreadable; rebuilt it from the session keys."); } }
+    if (idx) { d.cur = idx.cur || null; d.prefs = idx.prefs || d.prefs; d.mig = idx.mig || {}; }
+    this.keys().forEach(function (k) {
+      if (k.indexOf(SKEY) !== 0) return;
+      var raw = self.get(k);
+      try { var x = fromRecord(JSON.parse(raw)); d.sessions[x.id] = x; }
+      catch (e) { d.bad.push(k); notes.push("Could not read " + k + " (kept as is; use Storage → Download to get it)."); }
+    });
+    this.db = d;
+    var m = this.mergeV1(); if (m) notes = notes.concat(m);
+    if (d.cur && !d.sessions[d.cur]) d.cur = null;
+    if (!d.cur) { var ids = this.order(); d.cur = ids[0] || null; }
+    return notes;
+  };
+  Store.prototype.order = function () {
+    var S = this.db.sessions;
+    return Object.keys(S).sort(function (a, b) { return (S[b].updated || S[b].created).localeCompare(S[a].updated || S[a].created); });
+  };
+  function untouched(x, n) { return x.base && x.base.n === n && x.rolls.length === n && !x.ops.length; }
+  /* fold craps.play.v1 (left by the old version, maybe still open in another tab) into v2 without losing anything */
+  Store.prototype.mergeV1 = function () {
+    var raw = this.get(OLD); if (!raw) return null;
+    var d = this.db, notes = [], old;
+    try { old = parseV1(raw); }
+    catch (e) { this.v1Unreadable = true; return ["Old save (craps.play.v1) could not be read. It is kept untouched; download it from Settings → Storage."]; }
+    var ok = true, added = 0, updated = 0, newCur = null;
+    for (var id in old.sessions) {
+      var o = old.sessions[id]; if (!o || !o.state) continue;
+      var n = (o.rolls || []).length, have = d.sessions[id], x;
+      try {
+        if (!have) { x = fromV1Session(o); if (!sameAs(o, x)) throw new Error("check failed"); d.sessions[id] = x; added++; }
+        else if (untouched(have, d.mig[id]) && n !== d.mig[id]) { x = fromV1Session(o); if (!sameAs(o, x)) throw new Error("check failed"); d.sessions[id] = x; updated++; }
+        else if (n > (d.mig[id] || 0)) {
+          var cid = id + "-oldtab", cp = d.sessions[cid];
+          if (!cp || untouched(cp, d.mig[cid])) { x = fromV1Session(o, cid, " (from old tab)"); if (!sameAs(o, x)) throw new Error("check failed"); d.sessions[cid] = x; d.mig[cid] = n; added++; }
+          else { ok = false; notes.push("Old tab has newer rolls for " + o.name + " but both copies changed; old save kept."); continue; }
+        } else continue;
+        d.mig[id] = n;
+        if (id === old.cur) newCur = d.sessions[id] ? id : null;
+      } catch (e) { ok = false; notes.push("Could not convert " + (o.name || id) + " (" + e.message + "); old save kept."); }
+    }
+    if (!d.cur && old.cur && d.sessions[old.cur]) d.cur = old.cur;
+    if (newCur && (updated || !d.cur)) d.cur = newCur;
+    if (old.prefs && old.prefs.win && !this.get(IDX)) d.prefs.win = old.prefs.win;
+    if (added || updated) notes.push("Moved " + (added + updated) + " session" + (added + updated > 1 ? "s" : "") + " to the new compact storage.");
+    var saved = this.saveAll();
+    if (!saved.ok && saved.quota && ok && (added || updated)) {
+      // the old blob is what fills the quota. Everything converted and checked out, and the compact copy is much
+      // smaller, so: hand the raw blob to the backup hook (a file download in the browser), drop it, write v2.
+      var size = 0; for (var sid in d.sessions) size += JSON.stringify(toRecord(d.sessions[sid])).length;
+      if (size < raw.length) {
+        if (this.backupHook) { try { this.backupHook(raw, "craps-play-v1-backup"); notes.push("Downloaded a backup of the old save first."); } catch (e) {} }
+        this.del(OLD); saved = this.saveAll();
+        if (saved.ok) { this.log("dropped " + OLD + " to make room for verified v2 copy"); notes.push("Storage was full: converted the old save and freed " + Math.round((raw.length - size) / 1024) + " KB."); }
+        else { try { this.set(OLD, raw); } catch (e) {} }
+      }
+    }
+    if (saved.ok && ok) {
+      // everything is in v2 and read back fine: the old blob is no longer needed and is what fills the quota
+      var verify = true;
+      for (var id2 in old.sessions) { var o2 = old.sessions[id2]; if (!o2 || !o2.state) continue; var back = this.get(SKEY + id2); if (!back) { verify = false; break; } }
+      if (verify) { this.del(OLD); this.log("removed " + OLD + " after verified migration"); }
+    } else if (!saved.ok) notes.push("Converted in memory, but could not save yet (storage full). The old save is kept.");
+    this.v1Merged = true;
+    return notes;
+  };
+  /* write one session + index. On a quota error: free our own dead weight, trim old-session detail, retry. */
+  Store.prototype.saveSession = function (x) {
+    var self = this, recs = {};
+    function attempt() {
+      if (x) self.set(SKEY + x.id, JSON.stringify(toRecord(x)));
+      self.set(IDX, self.index());
+    }
+    try { attempt(); this.unsaved = false; this.lastError = null; return { ok: true }; }
+    catch (e) {
+      if (!isQuota(e)) { this.unsaved = true; this.lastError = e.message; return { ok: false, error: e.message }; }
+      var freed = this.relieve(x ? x.id : null);
+      try { attempt(); this.unsaved = false; this.lastError = null; return { ok: true, trimmed: freed }; }
+      catch (e2) { this.unsaved = true; this.lastError = e2.message; return { ok: false, quota: true, error: e2.message, trimmed: freed }; }
+    }
+  };
+  Store.prototype.saveAll = function () {
+    var self = this, res = { ok: true };
+    Object.keys(this.db.sessions).forEach(function (id) {
+      if (id === self.db.cur) return;
+      var r = self.saveSession(self.db.sessions[id]); if (!r.ok) res = r;
+    });
+    var r2 = this.saveSession(this.cur()); if (!r2.ok) res = r2;
+    return res;
+  };
+  /* quota relief, least valuable first; never deletes a session or a roll */
+  Store.prototype.relieve = function (keepId) {
+    var done = [], self = this;
+    // 1) old v1 blob, only if every one of its sessions is already safely in v2
+    var raw = this.get(OLD);
+    if (raw && this.v1Merged && !this.v1Unreadable) {
+      try { var old = parseV1(raw), all = true; for (var id in old.sessions) { var o = old.sessions[id]; if (o && o.state && !(this.db.sessions[id] && this.db.mig[id] >= (o.rolls || []).length && this.get(SKEY + id))) all = false; }
+        if (all) { this.del(OLD); done.push("removed old v1 save (already converted)"); } } catch (e) {}
+    }
+    // 2) drop the stored result text of OTHER sessions' migrated rolls (rolls, P/L and bets stay). Kept in memory
+    //    unless the smaller copy was actually written. The session being played is never trimmed.
+    Object.keys(this.db.sessions).forEach(function (id) {
+      var x = self.db.sessions[id]; if (id === keepId || !x.base) return;
+      var keep = x.base.hist.map(function (h) { return h[0]; }), n = keep.filter(function (l) { return l != null; }).length; if (!n) return;
+      x.base.hist.forEach(function (h) { h[0] = null; });
+      try { self.set(SKEY + id, JSON.stringify(toRecord(x))); rebuild(x); done.push("shortened the old result text of " + n + " rolls in " + x.name); }
+      catch (e) { x.base.hist.forEach(function (h, k) { h[0] = keep[k]; }); }
+    });
+    return done;
+  };
+  Store.prototype.remove = function (id) { delete this.db.sessions[id]; delete this.db.mig[id]; this.del(SKEY + id); };
+  /* usage in characters (Chrome counts ~1 byte per char for plain text, 2 for others; quota is ~5 MB per origin) */
+  Store.prototype.usage = function () {
+    var self = this, g = { app: 0, oldv1: 0, other: {}, rest: 0, total: 0 };
+    this.keys().forEach(function (k) {
+      var v = self.get(k) || "", n = k.length + v.length; g.total += n;
+      if (k === OLD || k === OLDBAK) g.oldv1 += n;
+      else if (k === IDX || k.indexOf(SKEY) === 0) g.app += n;
+      else if (OTHER[k]) g.other[k] = n;
+      else g.rest += n;
+    });
+    return g;
+  };
+
+  return { IDX: IDX, SKEY: SKEY, OLD: OLD, OLDBAK: OLDBAK, OTHER: OTHER, Store: Store, encRoll: encRoll, encRolls: encRolls, decRolls: decRolls, applyOp: applyOp,
+    newSession: newSession, rebuild: rebuild, addRoll: addRoll, addOp: addOp, undo: undo, opLabel: opLabel, toRecord: toRecord, fromRecord: fromRecord,
+    fromV1Session: fromV1Session, parseV1: parseV1, sameAs: sameAs, isQuota: isQuota, meta: meta, legacyEntry: legacyEntry };
+});
+
+</script>
+<script id="ui">
+(function () {
+  "use strict";
+  var C = window.CrapsPlay, ST = window.CrapsStore, WINS = [12, 24, 36, 72, "all"], UNITS = [0.5, 1, 2, 5, 10, 25, 50, 100];
+  var $ = function (id) { return document.getElementById(id); };
+  var hardNext = false, diceMode = false, die1 = null, openSheet = null, lastImport = null, impRev = false, lastReplay = null;
+  /* storage: compact v2 (one key per session + a small index), see store.js. Undo replays; no snapshots are stored. */
+  var store = new ST.Store(window.localStorage), loadNotes = [];
+  store.backupHook = function (raw, name) { download(name + "-" + stamp() + ".json", raw, "application/json"); };
+  try { loadNotes = store.load(); } catch (e) { loadNotes = ["Could not load saved sessions (" + e.message + "). Nothing was deleted."]; }
+  if (!store.db) store.db = { v: 2, cur: null, prefs: { win: 24 }, sessions: {}, mig: {}, bad: [] };
+  var db = store.db;
+  function stamp() { var d = new Date(), p = function (n) { return ("0" + n).slice(-2); }; return d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + "-" + p(d.getHours()) + p(d.getMinutes()); }
+
+  function save() {
+    var r = store.saveSession(sess());
+    if (r.ok) { if (r.trimmed && r.trimmed.length) toast("Storage was nearly full: " + r.trimmed.join("; ") + ". Saved."); }
+    else toast(r.quota ? "NOT SAVED — browser storage is full (other craps pages share it). Nothing is lost in this tab: ☰ → Export, or Settings → Storage." : "NOT SAVED — " + r.error);
+    renderSaveBar();
+  }
+  function renderSaveBar() { var b = $("saveBar"); if (b) b.hidden = !store.unsaved; }
+  function sess() { return db.cur ? db.sessions[db.cur] : null; }
+  function newSession(opts) {
+    opts = opts || {}; var prev = sess();
+    var cfg = { bankroll: opts.bankroll || 5000, strat: prev ? C.clone(prev.state.strat) : { mode: "avoid", avoid: 10, tierIdx: 3, ladder: false, unit: 5, preset: "no10", amounts: { place: C.clone(C.PRESETS.no10.place), lay: C.clone(C.PRESETS.no10.lay) } }, plan: prev ? C.clone(prev.state.plan) : {} };
+    if (prev) cfg.settings = C.clone(prev.state.settings);
+    var s = ST.newSession({ name: opts.name, cfg: cfg, seed: opts.seed || [] });
+    db.sessions[s.id] = s; db.cur = s.id; save(); return s;
+  }
+  if (!sess()) newSession({});
+  db.prefs = db.prefs || { win: 24 };
+
+  function allRolls() { var s = sess(); return s.seed.concat(s.rolls); }
+  function st() { return sess().state; }
+  function cls(x) { return x > 0 ? "pos" : x < 0 ? "neg" : ""; }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function toast(m) { var t = $("toast"); t.textContent = m; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function () { t.hidden = true; }, m.length > 90 ? 6000 : 2600); }
+  function winLabel(w) { return w === "all" ? "ALL" : w; }
+
+  /* ---------- actions ---------- */
+  function enterRoll(r) {
+    var e = ST.addRoll(sess(), r); if (!e) return;
+    hardNext = false; save(); render(); if (e.notes && e.notes.length && !store.unsaved) notesToast(e.notes);
+  }
+  function undo() {
+    var u = ST.undo(sess());
+    if (!u.what) return toast(u.floor ? "Can't undo past the " + u.floor + " rolls brought over from the old version" : "Nothing to undo");
+    save(); render(); toast(u.what === "op" ? "Undid: " + ST.opLabel(u.op) : "Last roll removed");
+  }
+  /* every bet / strategy change is a small recorded op (replayed on load and on undo) */
+  function doOp(op) { var r = ST.addOp(sess(), op); notesToast(r.notes); save(); render(); return r.notes; }
+  function notesToast(n) { if (n && n.length) toast(n.join(" · ")); }
+
+  /* ---------- render main ---------- */
+  function render() {
+    var s = sess(), S = s.state, pl = C.pl(S);
+    $("bank").textContent = C.fmt(S.bank);
+    $("pl").textContent = C.sfmt(pl); $("pl").className = cls(pl);
+    var pk = $("puck"); pk.textContent = S.point ? S.point : "OFF"; pk.className = "puck" + (S.point ? " on" : "");
+    // hot/cold
+    var win = db.prefs.win, rolls = allRolls(), hc = C.hotCold(rolls, win), sug = C.coldest(rolls, win);
+    $("hcCells").innerHTML = [4, 5, 6, 7, 8, 9, 10].map(function (n) {
+      var x = hc.totals[n];
+      return '<div class="hc-cell g-' + x.grade + (n === 7 ? " seven" : "") + (n === sug ? " sugg" : "") + '" title="z ' + x.z.toFixed(2) + '"><b>' + n + "</b><small>" + x.count + "/" + x.exp.toFixed(1) + "</small></div>";
+    }).join("");
+    $("hcWin").innerHTML = "<small>last</small>" + winLabel(win) + "<small>" + hc.n + " rolls</small>";
+    // chips
+    var bets = S.bets, keys = C.BET_KEYS.filter(function (k) { return bets[k]; }), co = S.point == null;
+    $("chips").innerHTML = keys.length ? keys.map(function (k) {
+      var off = co && ((/^place/.test(k) && !S.settings.placeWorkComeout) || (/^hard/.test(k) && !S.settings.hardWorkComeout));
+      return '<span class="chip' + (/^lay/.test(k) ? " lay" : "") + (off ? " off" : "") + '">' + C.shortLabel(k) + " " + C.fmt(bets[k]) + "</span>";
+    }).join("") : '<span class="chip none">No bets — pick a strategy below or open Bets</span>';
+    var want = C.desired(S), miss = C.BET_KEYS.filter(function (k) { return want[k] > (bets[k] || 0) + 1e-9 && !(k === "pass" || k === "dp") && !(/Odds$/.test(k) && co); });
+    if (miss.length) $("chips").innerHTML += miss.map(function (k) { return '<span class="chip miss" title="wanted but not on the table">' + C.shortLabel(k) + " short</span>"; }).join("");
+    $("tot").textContent = "on table " + C.fmt(C.onTable(S));
+    // result
+    var last = s.history[s.history.length - 1], res = $("result");
+    if (last) { res.innerHTML = esc(last.line) + (last.notes && last.notes.length ? '<span class="note">' + esc(last.notes.join(" · ")) + "</span>" : ""); res.className = "result " + (last.net > 0 ? "win" : last.net < 0 ? "loss" : ""); }
+    else { res.textContent = s.seed.length ? "Seeded " + s.seed.length + " past rolls for hot/cold. Enter the next roll." : "Enter the first roll. Point already on? Tap the puck."; res.className = "result"; }
+    // strip newest first
+    var recent = rolls.slice(-20).reverse(), seedN = s.seed.length, tot = rolls.length;
+    $("strip").innerHTML = recent.map(function (r, i) {
+      var idx = tot - 1 - i, isSeed = idx < seedN, hist = !isSeed ? s.history[idx - seedN] : null;
+      var c = "r" + (r.total === 7 ? " s7" : "") + (r.hard && r.total % 2 === 0 && r.total > 2 && r.total < 12 ? " h" : "") + (isSeed ? " seed" : "") + (i === 0 ? " first" : "") + (hist && hist.pt == null && r.total !== 7 && C.BOX.indexOf(r.total) >= 0 ? " pt" : "");
+      return '<span class="' + c + '">' + (r.hard && r.total % 2 === 0 && r.total > 2 && r.total < 12 ? "h" : "") + r.total + "</span>";
+    }).join("") || '<span class="muted">none yet</span>';
+    renderStrat(sug);
+    var rc = "<h3>Recent results</h3>";
+    for (var j = s.history.length - 1, c2 = 0; j >= 0 && c2 < 14; j--, c2++) { var hh = s.history[j]; rc += '<div><b>#' + (j + 1) + '</b> ' + esc(hh.line) + ' <span class="' + cls(hh.pl) + '">' + C.sfmt(hh.pl) + "</span></div>"; }
+    $("recent").innerHTML = rc;
+    $("hardBtn").setAttribute("aria-pressed", hardNext ? "true" : "false");
+    $("keys").hidden = diceMode; $("dice").hidden = !diceMode;
+    $("diceLab").textContent = die1 ? "Die 1 = " + die1 + " · tap die 2" : "Tap die 1";
+    if (openSheet) renderSheet(openSheet);
+  }
+  function unitOf(S) { return S.strat.unit || 5; }
+  function renderStrat(sug) {
+    var s = sess(), S = s.state, sp = S.strat, h = "", P = S.press;
+    if (sp.mode === "avoid") {
+      var ti = C.curTierIdx(S), fit = C.fitTier(S, ti), lad = S.ladder.frames.length;
+      var pv = C.planPreview(sp.amounts, sp.avoid, C.TIERS[fit >= 0 ? fit : ti]);
+      h += '<div class="srow"><span class="slab">Avoid</span>' + C.AVOID_CHOICES.map(function (n) {
+        return '<button class="av' + (n === sug ? " sugg" : "") + '" data-avoid="' + n + '" aria-pressed="' + (sp.avoid === n) + '">' + (n === 7 ? "none" : n) + "</button>";
+      }).join("") + "</div>";
+      h += '<div class="srow"><span class="slab">Tier</span><button class="sbtn" data-act="tier-" aria-label="Tier down">−</button><div class="tier">' + C.TIERS[sp.tierIdx] + "×" +
+        "<small>" + (lad ? "ladder → " + C.TIERS[ti] + "×" : fit < ti ? "capped " + (fit >= 0 ? C.TIERS[fit] + "×" : "none") + " by " + C.capReason(S, ti) : "7-out " + C.sfmt(pv.seven)) + "</small></div>" +
+        '<button class="sbtn" data-act="tier+" aria-label="Tier up">+</button><button class="sbtn" data-act="ladder" aria-pressed="' + !!sp.ladder + '">Ladder</button>' +
+        '<button class="sbtn" data-sheet="bets">' + esc(presetName(sp)) + "</button></div>";
+    } else {
+      h += '<div class="srow"><span class="slab">Manual</span><button style="flex:2" data-sheet="bets">Edit bets</button></div>';
+    }
+    var last = s.history[s.history.length - 1], hitN = last && last.hit ? last.hit : null, u = unitOf(S);
+    h += '<div class="srow press"><span class="slab">Press<small>' + P.hits + " hit" + (P.hits === 1 ? "" : "s") + "</small></span>" +
+      '<button class="sbtn" data-act="press"' + (hitN ? "" : " disabled") + ">" + (hitN ? "Press " + hitN + " +" + C.fmt(C.pressUnitFor(hitN, u)) : "Press") + "</button>" +
+      '<button class="sbtn" data-act="regress"' + (Object.keys(P.extra).length ? "" : " disabled") + ">Regress</button>" +
+      '<button class="sbtn" data-act="down" aria-pressed="' + (P.mode === "down") + '">' + (P.mode === "down" ? "Back up" : "Take down") + "</button>" +
+      '<button class="sbtn" data-act="across" aria-pressed="' + (P.mode === "across") + '">Across ' + C.fmt(u) + "</button></div>";
+    $("strat").innerHTML = h;
+  }
+  function presetName(sp) { return sp.preset && C.PRESETS[sp.preset] ? C.PRESETS[sp.preset].name.replace(" (old built-in)", "") : "Custom plan"; }
+
+  /* ---------- sheets ---------- */
+  var TITLES = { point: "Point already on?", bets: "Bets", history: "History", heat: "Heat map", stats: "Stats", session: "Session · import · export", settings: "Settings" };
+  function showSheet(name) { openSheet = name; $("sheet").hidden = false; $("sheetTitle").textContent = TITLES[name]; renderSheet(name); }
+  function closeSheet() { openSheet = null; $("sheet").hidden = true; }
+  function renderSheet(name) {
+    var f = { point: sheetPoint, bets: sheetBets, history: sheetHistory, heat: sheetHeat, stats: sheetStats, session: sheetSession, settings: sheetSettings }[name];
+    var body = $("sheetBody"), keepScroll = body.scrollTop, ta = $("impText"), keep = ta ? ta.value : null;
+    body.innerHTML = f();
+    if (keep != null && $("impText")) $("impText").value = keep;
+    body.scrollTop = keepScroll;
+  }
+  function sheetBets() {
+    var S = st(), sp = S.strat, av = sp.mode === "avoid", u = unitOf(S), h = "";
+    if (av) {
+      var am = sp.amounts, ti = C.curTierIdx(S), mult = C.TIERS[ti], pv = C.planPreview(am, sp.avoid, mult);
+      h += '<div class="card"><h3>Avoid plan · amounts at 1×</h3><div class="row presets">' + Object.keys(C.PRESETS).map(function (id) {
+        return '<button data-preset="' + id + '" aria-pressed="' + (sp.preset === id) + '">' + esc(C.PRESETS[id].name) + "</button>";
+      }).join("") + "</div>" +
+        '<table class="t amt"><tr><th>#</th><th>Place</th><th>Lay (if avoided)</th></tr>' + C.BOX.map(function (n) {
+          return "<tr" + (n === sp.avoid ? ' class="avd"' : "") + "><td><b>" + n + "</b></td>" +
+            '<td><input type="number" inputmode="decimal" min="0" step="0.01" data-amt="place:' + n + '" value="' + (am.place[n] || 0) + '" aria-label="Place ' + n + ' at 1x"></td>' +
+            '<td><input type="number" inputmode="decimal" min="0" step="0.01" data-amt="lay:' + n + '" value="' + (am.lay[n] || 0) + '" aria-label="Lay ' + n + ' at 1x"></td></tr>';
+        }).join("") + "</table>" +
+        '<div class="row"><label style="flex:2">Size lays so a seven-out nets ($ at 1×)<input type="number" inputmode="decimal" id="layTarget" value="150" step="1"></label><button data-act="sizelays">Size lays</button></div>' +
+        '<div class="muted">Now ' + (sp.avoid === 7 ? "no lay" : "NO-" + sp.avoid) + " at " + mult + "× (" + C.fmt(pv.total) + " on table): seven-out " + C.sfmt(pv.seven) + " · hits " +
+        C.BOX.filter(function (n) { return pv.hits[n] != null; }).map(function (n) { return n + " " + C.sfmt(pv.hits[n]); }).join(", ") + ". Tiers scale these amounts.</div></div>";
+    }
+    h += '<div class="card"><h3>Unit (press, across, chip)</h3><div class="units">' + UNITS.map(function (x) { return '<button data-unit="' + x + '" aria-pressed="' + (u === x) + '">' + C.fmt(x) + "</button>"; }).join("") + "</div>" +
+      '<div class="muted">Press adds one unit to the number that just hit (6/8 get 6/5 of a unit). Regress removes the presses. Take down pulls every strategy bet; Across puts one unit on every box number with no lay. A seven-out clears all of it and goes back to your plan.</div></div>';
+    h += '<div class="card"><h3>' + (av ? "Extra bets" : "Bets") + '</h3><div class="muted">+ / − change a bet by one unit. Bets stay up until removed. Pass/DP go up only on a come-out; odds only once a point is on.</div>';
+    C.BET_KEYS.forEach(function (k) {
+      if (av && /^(place|lay)\d+$/.test(k)) return;
+      var plan = S.plan[k] || 0, on = S.bets[k] || 0;
+      h += '<div class="betrow"><span>' + C.label(k) + '</span><span class="amt">' + (plan ? C.fmt(plan) : "—") + (on !== plan ? '<br><small class="muted">table ' + C.fmt(on) + "</small>" : "") + "</span>" +
+        '<button data-bet="' + k + '" data-d="-1" aria-label="' + C.label(k) + ' minus">−</button><button data-bet="' + k + '" data-d="1" aria-label="' + C.label(k) + ' plus">+</button></div>';
+    });
+    h += '</div><div class="card"><h3>Strategy</h3><div class="row"><button data-act="clear">Clear extra bets</button><button data-act="mode">' + (av ? "Switch to Manual only" : "Switch to Avoid") + '</button></div>' +
+      '<label class="tg"><input type="checkbox" data-strat="autoCold"' + (sp.autoCold ? " checked" : "") + '> Auto-follow cold (avoid moves to the coldest number each roll)</label></div>';
+    return h;
+  }
+  function sheetPoint() {
+    var S = st();
+    return '<div class="card"><div class="muted">Joining mid-hand? Set the point that is on now, so the next 7 counts as a seven-out and the place bets work. No money moves.</div><div class="units">' +
+      [0, 4, 5, 6, 8, 9, 10].map(function (n) { return '<button data-point="' + n + '" aria-pressed="' + ((S.point || 0) === n) + '">' + (n ? n : "OFF") + "</button>"; }).join("") + "</div></div>";
+  }
+  function sheetHistory() {
+    var s = sess(), h = '<div class="card"><h3>' + s.rolls.length + " rolls this session" + (s.seed.length ? " · " + s.seed.length + " seeded" : "") + '</h3><div class="hist">';
+    for (var i = s.history.length - 1; i >= 0; i--) { var e = s.history[i]; h += "<div><b>#" + (i + 1) + "</b> " + esc(e.line) + ' <span class="' + cls(e.pl) + '">P/L ' + C.sfmt(e.pl) + "</span>" + (e.notes && e.notes.length ? '<br><span class="muted">' + esc(e.notes.join(" · ")) + "</span>" : "") + "</div>"; }
+    h += "</div></div>";
+    if (s.seed.length) h += '<div class="card"><h3>Seeded rolls (oldest → newest)</h3><div class="hist">' + s.seed.map(fmtRoll).join(" ") + "</div></div>";
+    return h;
+  }
+  function fmtRoll(r) { return r.dice ? r.dice.join("-") : (r.hard && r.total % 2 === 0 ? "h" : "") + r.total; }
+  function winRow() { return '<div class="row">' + WINS.map(function (w) { return '<button data-setwin="' + w + '" aria-pressed="' + (db.prefs.win === w) + '">' + winLabel(w) + "</button>"; }).join("") + "</div>"; }
+  function cell(lbl, x) { return '<div class="hc-cell g-' + x.grade + '"><b>' + lbl + "</b><small>" + x.count + "/" + x.exp.toFixed(1) + "<br>z " + x.z.toFixed(1) + "</small></div>"; }
+  function sheetHeat() {
+    var w = db.prefs.win, H = C.heat(allRolls(), w), h = '<div class="card"><h3>Window</h3>' + winRow() + '<div class="muted">' + H.n + " rolls. Count/expected and z. Hot = orange/red, cold = blue, |z|&lt;1 neutral. Describes the past only; it does not predict the next roll.</div></div>";
+    h += '<div class="card"><h3>All totals</h3><div class="hgrid">' + [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(function (n) { return cell(n, H.totals[n]); }).join("") + "</div></div>";
+    h += '<div class="card"><h3>Horn 2 · 3 · 11 · 12</h3><div class="hgrid">' + [2, 3, 11, 12].map(function (n) { return cell(n, H.totals[n]); }).join("") + "</div></div>";
+    h += '<div class="card"><h3>Hardways</h3><div class="hgrid">' + C.HARDS.map(function (n) { return cell("H" + n, H.hard[n]); }).join("") + '</div><div class="muted">Plain 4/6/8/10 entries count as easy.</div></div>';
+    h += '<div class="card"><h3>Hops (' + H.hopN + ' rolls with known dice)</h3><div class="hgrid">' + H.hops.map(function (x) { return cell(x.key, x); }).join("") + '</div><div class="muted">Only rolls entered with dice (or 2, 3, 11, 12, hard) count here.</div></div>';
+    return h;
+  }
+  function sheetStats() {
+    var s = sess(), S = s.state, X = S.stats, rolls = s.rolls, sev = rolls.filter(function (r) { return r.total === 7; }).length;
+    var h = '<div class="card"><h3>Session</h3><table class="t">' +
+      tr("Start bankroll", C.fmt(S.start)) + tr("Bankroll (off table)", C.fmt(S.bank)) + tr("On table", C.fmt(C.onTable(S))) + tr("P/L", C.sfmt(C.pl(S))) +
+      tr("Peak P/L", C.sfmt(X.peak)) + tr("Max drawdown", C.fmt(X.maxDD)) + tr("Lowest P/L", C.sfmt(X.minPL)) +
+      tr("Rolls", rolls.length) + tr("Sevens", sev + " (" + (rolls.length ? (100 * sev / rolls.length).toFixed(1) : "0") + "%, normal 16.7%)") +
+      tr("Points made / seven-outs", X.pointsMade + " / " + X.sevenOuts) + tr("Lay wins / losses", X.layWins + " / " + X.layLosses) +
+      tr("Bets skipped (bankroll short)", X.skipped) + "</table></div>";
+    var spots = Object.keys(X.bySpot);
+    if (spots.length) h += '<div class="card"><h3>P/L by spot</h3><table class="t">' + spots.map(function (k) { return tr(C.label(k), '<span class="' + cls(X.bySpot[k]) + '">' + C.sfmt(X.bySpot[k]) + "</span>"); }).join("") + "</table></div>";
+    if (S.ladder.frames.length) h += '<div class="card"><h3>Recovery ladder</h3><table class="t"><tr><th>Lay loss</th><th>Need back</th><th>Got</th><th>Return to</th></tr>' + S.ladder.frames.map(function (f) { return "<tr><td>" + C.fmt(f.loss) + "</td><td>&gt; " + C.fmt(f.need) + "</td><td>" + C.sfmt(f.got) + "</td><td>" + C.TIERS[f.ret] + "×</td></tr>"; }).join("") + "</table></div>";
+    return h;
+  }
+  function tr(a, b) { return "<tr><td>" + a + "</td><td>" + b + "</td></tr>"; }
+  function sheetSession() {
+    var s = sess(), ids = Object.keys(db.sessions).sort(function (a, b) { return (db.sessions[b].updated || db.sessions[b].created).localeCompare(db.sessions[a].updated || db.sessions[a].created); });
+    var h = '<div class="card"><h3>New session</h3><div class="row"><input type="number" id="nsBank" min="1" step="0.01" value="' + st().start + '" aria-label="Starting bankroll"><button data-act="new">Start new</button></div><div class="muted">Keeps your current strategy and settings.</div></div>';
+    h += '<div class="card"><h3>Sessions</h3>' + ids.map(function (id) { var x = db.sessions[id]; return '<div class="row"><span style="flex:2">' + (id === db.cur ? "▶ " : "") + esc(x.name) + '<br><small class="muted">' + x.rolls.length + " rolls · P/L " + C.sfmt(C.pl(x.state)) + "</small></span>" + (id === db.cur ? "" : '<button data-resume="' + id + '">Resume</button>') + '<button data-del="' + id + '">Delete</button></div>'; }).join("") + "</div>";
+    h += '<div class="card"><h3>Import past rolls</h3><textarea id="impText" placeholder="Paste rolls oldest → newest: 6 8 7 h8 4-4 11 …  or paste a roll-tracker JSON export"></textarea>' +
+      '<div class="row"><button data-act="file">Load file (JSON/CSV)</button><label class="tg" style="flex:1"><input type="checkbox" id="impRev"' + (impRev ? " checked" : "") + '> Newest first</label></div>' +
+      '<div class="row"><button data-act="seed">Seed hot/cold only</button><button data-act="replay">Replay through strategy</button><button data-act="playas">Play as new session</button></div><div class="row"><button data-act="restore">Restore exported sessions</button></div>' +
+      '<div class="muted">Seed: rolls show in hot/cold and the strip, no money. Replay: runs them through the current strategy from your starting bankroll and reports P/L and drawdown (no change to this session). Play as: new session with those rolls already settled, so you continue live from there. Restore: loads a file made with Export (JSON) back exactly as it was.</div>' +
+      (lastReplay || "") + "</div>";
+    h += '<div class="card"><h3>Export</h3><div class="row"><button data-act="exjson">JSON</button><button data-act="excsv">CSV</button><button data-act="extext">Copy rolls</button></div></div>';
+    return h;
+  }
+  function sheetSettings() {
+    var S = st(), x = S.settings;
+    return '<div class="card"><h3>Table rules</h3>' +
+      tg("placeWorkComeout", x.placeWorkComeout, "Place bets working on come-out") + tg("hardWorkComeout", x.hardWorkComeout, "Hardways working on come-out") +
+      tg("layVig", x.layVig, "Charge 5% vig on lay wins") + tg("field12x3", x.field12x3, "Field 12 pays 3:1 (else 2:1)") +
+      '<div class="muted">Lays always work. Standard (not crapless) rules for bubble machines and Evolution.</div></div>' +
+      '<div class="card"><h3>Limits</h3><label>Max combined bet on table ($)<input type="number" id="setMax" min="1" step="1" value="' + x.maxCombined + '"></label><button data-act="setmax">Save max</button></div>' +
+      '<div class="card"><h3>Auto-follow cold</h3><div class="muted">When ❄Auto is on, after each roll the avoid (lay) number moves to the coldest box number in the window below. Off by default; ❄ just highlights the suggestion.</div>' +
+      '<div class="row">' + WINS.map(function (w) { return '<button data-coldwin="' + w + '" aria-pressed="' + (S.strat.coldWin === w) + '">' + winLabel(w) + "</button>"; }).join("") + "</div></div>" +
+      '<div class="card"><h3>About</h3><div class="muted">Results come only from the rolls you enter. Hot/cold describes past rolls; dice have no memory. Saved on this device (compact: rolls + bet changes; undo replays them).</div></div>' + storageCard();
+  }
+  function kb(n) { return n < 1024 ? n + " B" : (n / 1024).toFixed(n < 10240 ? 1 : 0) + " KB"; }
+  function storageCard() {
+    var u = store.usage(), LIM = 5 * 1024 * 1024, rows = [["This app", u.app]];
+    if (u.oldv1) rows.push(["Old version save (craps.play.v1)", u.oldv1]);
+    Object.keys(ST.OTHER).forEach(function (k) { if (u.other[k]) rows.push([ST.OTHER[k] + " · " + k, u.other[k]]); });
+    if (u.rest) rows.push(["Other pages on file://", u.rest]);
+    var pct = Math.min(100, 100 * u.total / LIM), old = store.order().filter(function (id) { return id !== db.cur; });
+    return '<div class="card" id="storageCard"><h3>Storage</h3>' +
+      '<div class="meter" aria-label="Storage used"><i style="width:' + pct.toFixed(1) + '%"' + (pct > 85 ? ' class="hi"' : "") + "></i></div>" +
+      '<div class="muted">' + kb(u.total) + " of about 5,000 KB used by pages opened from files on this computer (" + pct.toFixed(0) + "%). All craps pages share it.</div>" +
+      '<table class="t">' + rows.map(function (r) { return tr(esc(r[0]), kb(r[1])); }).join("") + "</table>" +
+      (store.unsaved ? '<div class="warn">Last save failed: ' + esc(store.lastError || "storage full") + ". Your rolls are safe in this tab. Export now, then free space.</div>" : "") +
+      '<div class="row"><button data-act="exall">Export all sessions</button><button data-act="exold"' + (old.length ? "" : " disabled") + ">Export + delete " + old.length + " old session" + (old.length === 1 ? "" : "s") + "</button></div>" +
+      (u.oldv1 ? '<div class="row"><button data-act="exv1">Download old-version save</button></div>' : "") +
+      '<div class="muted">Export saves a file you can load back with ☰ → Import (it restores the sessions exactly). Delete keeps the session you are playing. Other apps\' data is never touched here.</div></div>';
+  }
+  function backupJSON(ids) { return JSON.stringify({ format: "craps.play.backup.v2", exported: new Date().toISOString(), sessions: ids.map(function (id) { return ST.toRecord(db.sessions[id]); }) }); }
+  /* bring back sessions from our own exports: backup v2 (exact) or a single-session export from the old or new version */
+  function restoreImport(text) {
+    var d; try { d = JSON.parse(String(text || "").trim()); } catch (e) { toast("Paste or load an exported JSON file first"); return null; }
+    var made = [];
+    function fresh(id) { return db.sessions[id] ? id + "-r" + Date.now().toString(36) : id; }
+    try {
+      if (d && d.format === "craps.play.backup.v2" && Array.isArray(d.sessions)) {
+        d.sessions.forEach(function (rec) { rec.id = fresh(rec.id); var x = ST.fromRecord(rec); db.sessions[x.id] = x; made.push(x); });
+      } else if (d && d.format === "craps.play.session.v1" && d.record) {
+        d.record.id = fresh(d.record.id); var xr = ST.fromRecord(d.record); db.sessions[xr.id] = xr; made.push(xr);
+      } else if (d && d.format === "craps.play.session.v1" && d.session) {
+        var o = d.session, cfg = { bankroll: o.start, settings: o.settings, strat: o.strat, plan: o.plan };
+        var st0 = C.replay(o.rolls || [], { bankroll: o.start, settings: o.settings, strat: o.strat, plan: o.plan, seed: o.seed || [] }).state;
+        var x = ST.fromV1Session({ id: fresh(o.id || "p-restored"), name: (o.name || "Session") + " (restored)", created: o.created, updated: new Date().toISOString(), rolls: o.rolls || [], history: o.history || [], seed: o.seed || [], state: st0 });
+        db.sessions[x.id] = x; made.push(x);
+        if (C.money(C.pl(x.state)) !== C.money(o.pl)) toast("Note: bets/bank rebuilt with the session's final strategy; P/L now " + C.sfmt(C.pl(x.state)) + " (export said " + C.sfmt(o.pl) + "). History lines are the original.");
+      } else { toast("Not an export from this app (use Seed / Replay / Play as for roll lists)"); return null; }
+    } catch (e) { toast("Could not restore: " + e.message); return null; }
+    db.cur = made[made.length - 1].id; made.forEach(function (x) { store.saveSession(x); }); save();
+    return "Restored " + made.length + " session" + (made.length > 1 ? "s" : "") + " (" + made.map(function (x) { return x.rolls.length; }).join(", ") + " rolls)";
+  }
+  function tg(k, v, lbl) { return '<label class="tg"><input type="checkbox" data-setting="' + k + '"' + (v ? " checked" : "") + "> " + lbl + "</label>"; }
+
+  /* ---------- import / export ---------- */
+  function getImport() {
+    var r = C.importRolls($("impText").value);
+    if (r.error) { toast(r.error); return null; }
+    if (!r.rolls.length) { toast("No rolls found"); return null; }
+    if (impRev) r.rolls.reverse();
+    if (r.skipped && r.skipped.length && !confirm("Found " + r.rolls.length + " rolls. Skipped " + r.skipped.length + " entries I could not read: " + r.skipped.slice(0, 5).join(" ") + (r.skipped.length > 5 ? " …" : "") + "\nUse the " + r.rolls.length + " rolls?")) return null;
+    return r;
+  }
+  function doReplay(r) {
+    var S = st(), cfg = { bankroll: S.start, settings: C.clone(S.settings), strat: C.clone(S.strat), plan: C.clone(S.plan) };
+    var R = C.replay(r.rolls, cfg), cmp = "";
+    if (S.strat.mode === "avoid") {
+      cmp = '<table class="t"><tr><th>Avoid</th><th>P/L</th><th>Max DD</th><th>Lay W/L</th></tr>' + C.AVOID_CHOICES.map(function (n) {
+        var c = C.clone(cfg); c.strat.avoid = n; c.strat.autoCold = false; var q = C.replay(r.rolls, c);
+        return "<tr><td>" + (n === 7 ? "none" : "NO-" + n) + '</td><td class="' + cls(q.pl) + '">' + C.sfmt(q.pl) + "</td><td>" + C.fmt(q.maxDD) + "</td><td>" + q.layWins + "/" + q.layLosses + "</td></tr>";
+      }).join("") + '</table><div class="muted">Same rolls, same tier' + (S.strat.ladder ? " and ladder" : "") + ", fixed avoid number. Hindsight only.</div>";
+    }
+    lastReplay = '<div class="card"><h3>Replay · ' + R.rolls + " rolls</h3><table class=\"t\">" + tr("Final P/L", '<span class="' + cls(R.pl) + '">' + C.sfmt(R.pl) + "</span>") + tr("Max drawdown", C.fmt(R.maxDD)) + tr("Peak P/L", C.sfmt(R.peak)) + tr("Lowest P/L", C.sfmt(R.minPL)) + tr("Lay wins / losses", R.layWins + " / " + R.layLosses) + tr("Bets skipped (bankroll short)", R.skipped) + "</table>" + cmp + "</div>";
+    return R;
+  }
+  function download(name, text, type) { var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: type })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+  function exportJSON() { var s = sess(); return JSON.stringify({ format: "craps.play.session.v1", exported: new Date().toISOString(), session: { id: s.id, name: s.name, created: s.created, start: s.state.start, pl: C.pl(s.state), settings: s.state.settings, strat: s.state.strat, plan: s.state.plan, seed: s.seed, rolls: s.rolls, history: s.history }, record: ST.toRecord(s), text: s.rolls.map(fmtRoll).join(" ") }, null, 1); }
+  function exportCSV() { var s = sess(); return "n,total,hard,d1,d2,point_after,net,pl,tier,avoid,result\n" + s.history.map(function (e, i) { var r = e.roll; return [i + 1, r.total, r.hard ? 1 : 0, r.dice ? r.dice[0] : "", r.dice ? r.dice[1] : "", e.pt || "", e.net, e.pl, e.tier, e.avoid || "", '"' + e.line.replace(/"/g, "'") + '"'].join(","); }).join("\n"); }
+
+  /* ---------- events ---------- */
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest("button"); if (!b) { if (ev.target === $("sheet")) closeSheet(); return; }
+    var d = b.dataset, S = st();
+    if (d.roll) { var n = +d.roll; enterRoll({ total: n, hard: hardNext && C.HARDS.indexOf(n) >= 0 }); return; }
+    if (d.die) { if (!die1) { die1 = +d.die; render(); } else { var a = die1; die1 = null; enterRoll({ dice: [a, +d.die] }); } return; }
+    if (d.sheet) return showSheet(d.sheet);
+    if (d.avoid) return doOp(["avoid", +d.avoid]);
+    if (d.point != null) { closeSheet(); return doOp(["point", +d.point]); }
+    if (d.unit) return doOp(["unit", +d.unit]);
+    if (d.preset) return doOp(["preset", d.preset]);
+    if (d.bet) return doOp(["plan", d.bet, C.money(Math.max(0, (S.plan[d.bet] || 0) + unitOf(S) * +d.d))]);
+    if (d.setwin) { db.prefs.win = d.setwin === "all" ? "all" : +d.setwin; save(); return render(); }
+    if (d.coldwin) return doOp(["coldWin", d.coldwin === "all" ? "all" : +d.coldwin]);
+    if (d.resume) { db.cur = d.resume; save(); render(); return toast("Resumed " + sess().name); }
+    if (d.del) { if (!confirm("Delete this session? (Export it first if you may want it back.)")) return; store.remove(d.del); if (db.cur === d.del) { db.cur = store.order()[0] || null; if (!db.cur) newSession({}); } save(); return render(); }
+    var act = d.act; if (!act) return;
+    if (act === "undo") { die1 = null; return undo(); }
+    if (act === "hard") { hardNext = !hardNext; return render(); }
+    if (act === "dice") { diceMode = !diceMode; die1 = null; return render(); }
+    if (act === "close") return closeSheet();
+    if (act === "win") { var i = WINS.indexOf(db.prefs.win); db.prefs.win = WINS[(i + 1) % WINS.length]; save(); return render(); }
+    if (act === "tier-" || act === "tier+") { var t = Math.max(0, Math.min(C.TIERS.length - 1, S.strat.tierIdx + (act === "tier+" ? 1 : -1))); if (t === S.strat.tierIdx) return toast("Already at the " + (t ? "top" : "lowest") + " tier"); return doOp(["tier", t]); }
+    if (act === "ladder") return doOp(["ladder", !S.strat.ladder]);
+    if (act === "press") { var lh = sess().history[sess().history.length - 1]; if (!lh || !lh.hit) return toast("Press works right after a place bet hits"); return doOp(["press", lh.hit, unitOf(S)]); }
+    if (act === "regress") return doOp(["regress"]);
+    if (act === "down") return doOp(["down"]);
+    if (act === "across") return doOp(["across", unitOf(S)]);
+    if (act === "point") return showSheet("point");
+    if (act === "sizelays") { var tg0 = +$("layTarget").value; if (!isFinite(tg0)) return toast("Enter a target"); return doOp(["lays", C.money(tg0)]); }
+    if (act === "mode") {
+      if (S.strat.mode === "avoid" && C.onTable(S) > 0 && !confirm("Switch to Manual? This takes the Avoid place and lay bets down.")) return;
+      return doOp(["mode", S.strat.mode === "avoid" ? "manual" : "avoid"]);
+    }
+    if (act === "clear") { if (!confirm("Clear the extra bets?")) return; return doOp(["clear"]); }
+    if (act === "new") { var bk = +$("nsBank").value; if (!(bk > 0)) return toast("Enter a bankroll"); if (!confirm("Start a new session with " + C.fmt(bk) + "?")) return; newSession({ bankroll: bk }); closeSheet(); render(); return toast("New session"); }
+    if (act === "file") return $("fileIn").click();
+    if (act === "seed") { var r1 = getImport(); if (!r1) return; var s1 = sess(); if (s1.rolls.length && !confirm("This session already has live rolls. Seed anyway? (seed rolls are counted before them)")) return; ST.addOp(s1, ["seed", ST.encRolls(r1.rolls)]); save(); render(); return toast("Seeded " + r1.rolls.length + " rolls for hot/cold"); }
+    if (act === "replay") { var r2 = getImport(); if (!r2) return; var R = doReplay(r2); render(); return toast("Replay: P/L " + C.sfmt(R.pl) + ", max drawdown " + C.fmt(R.maxDD)); }
+    if (act === "playas") {
+      var r3 = getImport(); if (!r3) return; var s3 = newSession({ bankroll: S.start, name: "Imported " + new Date().toLocaleString() });
+      r3.rolls.forEach(function (r) { ST.addRoll(s3, r, null); }); save(); closeSheet(); render(); return toast("Loaded " + r3.rolls.length + " rolls; P/L " + C.sfmt(C.pl(s3.state)));
+    }
+    if (act === "setmax") { var m = +$("setMax").value; if (!(m > 0)) return toast("Enter a max"); doOp(["set", "maxCombined", m]); return toast("Max " + C.fmt(m)); }
+    if (act === "exall") { download("craps-play-all-" + stamp() + ".json", backupJSON(store.order()), "application/json"); return toast("Exported " + store.order().length + " sessions"); }
+    if (act === "exold") {
+      var olds = store.order().filter(function (id) { return id !== db.cur; }); if (!olds.length) return toast("No old sessions");
+      download("craps-play-old-sessions-" + stamp() + ".json", backupJSON(olds), "application/json");
+      if (!confirm("Saved " + olds.length + " old session" + (olds.length > 1 ? "s" : "") + " to a file in Downloads. Delete them from this browser now? (Check the file downloaded first.)")) return render();
+      olds.forEach(function (id) { store.remove(id); }); save(); render(); return toast("Deleted " + olds.length + " old sessions (kept in the exported file)");
+    }
+    if (act === "exv1") { var rawv1 = localStorage.getItem(ST.OLD) || localStorage.getItem(ST.OLDBAK); if (!rawv1) return toast("No old save"); return download("craps-play-v1-backup-" + stamp() + ".json", rawv1, "application/json"); }
+    if (act === "restore") { var rr = restoreImport($("impText").value); if (rr) { closeSheet(); render(); toast(rr); } return; }
+    if (act === "exjson") return download("craps-play-" + Date.now() + ".json", exportJSON(), "application/json");
+    if (act === "excsv") return download("craps-play-" + Date.now() + ".csv", exportCSV(), "text/csv");
+    if (act === "extext") { var txt = sess().rolls.map(fmtRoll).join(" "); (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function () { toast("Copied " + sess().rolls.length + " rolls"); }, function () { prompt("Rolls:", txt); }); return; }
+  });
+  document.addEventListener("change", function (ev) {
+    var t = ev.target;
+    if (t.dataset && t.dataset.setting) doOp(["set", t.dataset.setting, t.checked]);
+    if (t.dataset && t.dataset.strat === "autoCold") { doOp(["autoCold", t.checked]); toast(t.checked ? "Auto-follow cold ON" : "Auto-follow cold OFF"); }
+    if (t.dataset && t.dataset.amt) { var pa = t.dataset.amt.split(":"); doOp(["amt", pa[0], +pa[1], C.money(Math.max(0, +t.value || 0))]); }
+    if (t.id === "impRev") impRev = t.checked;
+    if (t.id === "fileIn" && t.files[0]) { var fr = new FileReader(); fr.onload = function () { $("impText").value = fr.result; var r = C.importRolls(fr.result); toast(r.error ? r.error : "Loaded " + r.rolls.length + " rolls from file — choose Seed, Replay or Play as"); t.value = ""; }; fr.readAsText(t.files[0]); }
+  });
+  document.addEventListener("keydown", function (ev) {
+    if (/INPUT|TEXTAREA/.test(document.activeElement.tagName)) return;
+    if (ev.key === "Escape") return closeSheet();
+    if (openSheet) return; // no roll entry or undo from the keyboard while a sheet is open
+    if (ev.key === "Backspace" || (ev.key === "z" && (ev.ctrlKey || ev.metaKey))) { ev.preventDefault(); return undo(); }
+    if (ev.key === "h") { hardNext = !hardNext; return render(); }
+    var map = { "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "0": 10, "-": 11, "=": 12 };
+    if (map[ev.key]) enterRoll({ total: map[ev.key], hard: hardNext && C.HARDS.indexOf(map[ev.key]) >= 0 });
+  });
+  /* the old version may still be open in another tab: when it saves, fold that save in (nothing is overwritten) */
+  window.addEventListener("storage", function (ev) {
+    if (ev.key === ST.OLD && ev.newValue) { var n = store.mergeV1(); if (n && n.length) { render(); toast(n.join(" ")); } }
+  });
+  window.CrapsPlayUI = { store: store, db: function () { return db; }, enterRoll: enterRoll, undo: undo, render: render, replayText: function (t) { return doReplay(C.importRolls(t)); } };
+  render(); renderSaveBar();
+  if (loadNotes.length) toast(loadNotes.join(" "));
+})();
+
+</script>
+
+<script>
+if ("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) {
+  navigator.serviceWorker.register("sw.js").catch(function () {});
+}
+</script>
+</body></html>
